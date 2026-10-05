@@ -672,7 +672,7 @@ function render(){
   var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,40), lh="";
   es.forEach(function(e){var g=GBY[e.g]; if(!g) return;
     lh+='<li><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>'+esc(pname(e.p))+': '+(g.check?esc(g.name)+' abgehakt':'+'+fmt(e.n)+' '+esc(g.name))+'</span>'+(canAct()?'<button data-del="'+esc(e.id)+'">Löschen</button>':'')+'</li>';});
-  $("log").innerHTML=lh||'<li class="empty">Noch nichts eingetragen. Wähl oben einen Namen und tipp bei einem Ziel auf Plus.</li>';
+  $("log").innerHTML=lh||'<li class="empty">Noch nichts eingetragen. Tipp eine Aufgabe an und dann auf Plus.</li>';
   renderClock();
   if(S.mode!=="loading"){
     var allNow=GOALS.length>0&&GOALS.every(function(g){return cur[g.id]});
@@ -834,7 +834,7 @@ function renderSettings(){
   Array.prototype.forEach.call($("settings").querySelectorAll("[data-rm],[data-rmcat]"),function(b){b.disabled=locked});
   ["newName","newCat","newTarget","newRule","addBtn","restoreBtn","newCatName","addCatBtn"].forEach(function(id){$(id).disabled=locked});
   var hid=(S.cfg.goals||{})._hidden; $("restoreBtn").hidden=!(Array.isArray(hid)&&hid.length);
-  $("goalHint").textContent=S.cfg.startAt?"Die Challenge läuft, die Ziele sind gesperrt. Zum Ändern die Startzeit leeren und speichern.":"Name, Beschreibung und Menge jeder Aufgabe lassen sich ändern, solange die Challenge nicht gestartet ist. Danach auf „Speichern“ tippen.";
+  $("goalHint").textContent=S.cfg.startAt?"Die Challenge läuft, die Aufgaben sind gesperrt. Zum Ändern die Startzeit leeren und speichern.":"Name, Beschreibung und Menge jeder Aufgabe lassen sich ändern, solange die Challenge nicht gestartet ist. Danach auf „Speichern“ tippen.";
   var st=S.cfg.startAt;
   if(st){var d=new Date(st-new Date(st).getTimezoneOffset()*60000); $("startAt").value=d.toISOString().slice(0,16);} else $("startAt").value="";
   ["saveBtn","resetBtn","stopBtn"].forEach(function(id){$(id).disabled=!canAct()});
