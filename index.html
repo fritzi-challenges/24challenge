@@ -40,6 +40,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .num{font-family:var(--display);font-variant-numeric:tabular-nums}
 
 /* scoreboard strip */
+.board:has(.tabs[hidden]){padding-bottom:12px}
 .board{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:clamp(12px,2.6vh,28px) 16px 0;display:flex;flex-direction:column;gap:8px}
 .board-top{display:flex;align-items:flex-end;gap:12px}
 .board-stats{margin-left:auto}
@@ -338,6 +339,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
   <section class="view" id="view-abschluss" hidden></section>
 
   <section class="view" id="view-optionen" hidden>
+    <div><button class="btn" id="optBack">← Zurück zu den Zielen</button></div>
     <h2>Namen, Ziele und Startzeit</h2>
     <div class="form" id="settings">
       <div class="names" id="nameInputs"></div>
@@ -850,6 +852,7 @@ function renderTabs(){
   var endOk=!!(S.fin||S.endPrev);
   if(S.tab==="abschluss"&&!endOk) S.tab="ziele";
   $("tabEnd").hidden=!endOk; $("optBtn").setAttribute("aria-pressed",String(S.tab==="optionen"));
+  $("tabs").hidden=S.tab==="optionen"&&!S.tv;
   var tab=S.tv?"ziele":S.tab;
   TABS.forEach(function(t){$("view-"+t).hidden=tab!==t});
   document.body.classList.toggle("tv",!!S.tv); $("tvExit").hidden=!S.tv;
@@ -925,6 +928,7 @@ document.addEventListener("click",function(ev){
   if(b.id==="profBtn"){ openProf(); return; }
   if(b.id==="profCancel"){ $("prof").hidden=true; return; }
   if(d.setme!==undefined){ flush(); S.me=Number(d.setme); ls("challenge24-me",String(S.me)); $("prof").hidden=true; renderWho(); render(); return; }
+  if(b.id==="optBack"){ S.tab="ziele"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="optBtn"){ S.tab=S.tab==="optionen"?"ziele":"optionen"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="endShow"){ S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="finClose"){ if(finStop) finStop(); return; }
