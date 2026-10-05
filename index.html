@@ -94,7 +94,7 @@ body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
 .goal.done h3{color:var(--good)}
 .goal.done:not(.check) h3::before{content:"✓ "}
 .goal.done .count b{color:var(--good)}
-.grow.done{background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.grow.done{background:color-mix(in srgb,var(--good) 16%,var(--surface));border-color:var(--good)}
 .grow.done .gname{color:var(--good)}
 .grow.done:not(.chk) .gname::before{content:"✓ "}
 .goal-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -123,9 +123,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{flex:1;border:0;background:none;padding:9px 6px;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.grid.rows{overflow:hidden;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.grow{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:baseline;min-width:0}
-.grow:last-child{border-bottom:0}
+.grid.rows{gap:10px}
+.grow{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);align-items:baseline;min-width:0}
 .grow .gname{font-weight:600;min-width:0;overflow-wrap:anywhere;hyphens:auto}
 .grow .gcount{color:var(--muted);white-space:nowrap;font-size:1.15rem}
 .grow .gcount b{color:var(--fg);font-weight:700}
@@ -234,6 +233,8 @@ body.tv .grow.chk.done .box{display:none}
 body.tv .grow.chk .gcount .pp:last-of-type{margin-right:0}
 #goals .cat h2{text-align:center}
 body.tv .board{position:static;border-bottom:0;padding-top:0}
+body.tv .hbtns{display:none}
+body.tv .board-top{justify-content:center;text-align:center}
 body.tv .clock{font-size:clamp(3.5rem,9vw,8rem)}
 body.tv .clock-label,body.tv .stat-label{font-size:clamp(.8rem,1.4vw,1.3rem)}
 body.tv .stat .num{font-size:clamp(2rem,4vw,3.6rem)}
@@ -609,7 +610,10 @@ function ico(g){
 function initials(i){
   var n=pname(i).trim(), a=n.charAt(0).toUpperCase(), clash=false;
   for(var k=0;k<NP();k++) if(k!==i&&pname(k).trim().charAt(0).toUpperCase()===a) clash=true;
-  return clash?a+n.charAt(1).toLowerCase():a;
+  if(!clash) return a;
+  var two=a+n.charAt(1).toLowerCase(), again=false;
+  for(var j=0;j<NP();j++){ var o=pname(j).trim(); if(j!==i&&o.charAt(0).toUpperCase()+o.charAt(1).toLowerCase()===two) again=true; }
+  return again?a+n.charAt(n.length-1):two;
 }
 function goalCard(g,t,frac,ro){
   var dis=canAct()?"":" disabled", done, h;
