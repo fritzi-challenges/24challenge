@@ -778,7 +778,7 @@ function render(){
     h+='</div></section>';
   });
   var main=$("goals"); main.innerHTML=h;
-  var pct=Math.round(acc/GOALS.length*100);
+  var pct=GOALS.length?(done===GOALS.length?100:Math.min(99,Math.floor(acc/GOALS.length*100))):0;
   $("totalFill").style.width=pct+"%"; $("totalText").textContent=pct+" % · "+done+" von "+GOALS.length+" Aufgaben";
   // table
   if(S.tab==="tabelle"&&!S.tv) renderOverview(T,frac);
@@ -1177,6 +1177,7 @@ document.addEventListener("click",function(ev){
   var b=ev.target.closest("button");
   if(!b){ var card=ev.target.closest("[data-card]"); if(card){ S.open=S.open===card.dataset.card?null:card.dataset.card; render(); } return; }
   if(b.disabled) return; var d=b.dataset;
+  if(!S.cfg.startAt&&(d.add!==undefined||d.pick!==undefined||d.edit!==undefined)){ toast("Erst die Challenge starten, dann könnt ihr eintragen."); return; }
   if(d.me!==undefined){ flush(); var i=Number(d.me); S.me=(S.me===i?null:i); ls("challenge24-me",S.me===null?"":String(S.me)); renderWho(); render(); return; }
   if(b.id==="tvBtn"){ S.tv=true; try{ var fs=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); if(fs&&fs.catch) fs.catch(function(){}); }catch(e){}
     try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){wake=l}).catch(function(){}); }catch(e){}
