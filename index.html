@@ -471,7 +471,7 @@ function goalCard(g,t,frac){
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar">';
   for(var i=0;i<NP();i++){ if(t.by[i]>0) h+='<i style="width:'+Math.min(100,t.by[i]/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+i+')" title="'+esc(pname(i))+': '+fmt(t.by[i])+'"></i>'; }
   h+='</div>'+(S.cfg.startAt&&!done?'<span class="soll" style="left:'+(frac*100)+'%" title="Soll laut Uhr"></span>':'')+'</div>';
-  h+='<div class="meta"><span>'+(done?"Ziel erreicht":"Noch "+fmt(rest)+" · "+fmt(rest/NP())+" pro Kopf")+'</span>'+st+'</div><div class="btns">';
+  h+=(done||st?'<div class="meta"><span>'+(done?"Ziel erreicht":"")+'</span>'+st+'</div>':'')+'<div class="btns">';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
   h+='<button class="undo" data-undo="'+g.id+'" title="Meinen letzten Eintrag hier zurücknehmen" aria-label="Letzten Eintrag bei '+esc(g.name)+' zurücknehmen"'+dis+'>↶</button></div></article>';
   return h;
