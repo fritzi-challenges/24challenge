@@ -40,7 +40,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .num{font-family:var(--display);font-variant-numeric:tabular-nums}
 
 /* scoreboard strip */
-.board{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px 0;display:flex;flex-direction:column;gap:8px}
+.board{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:clamp(12px,2.6vh,28px) 16px 0;display:flex;flex-direction:column;gap:8px}
 .board-top{display:flex;align-items:flex-end;gap:12px}
 .board-stats{margin-left:auto}
 .tvb{padding:3px 9px;font-size:.75rem;letter-spacing:.06em;color:var(--muted);align-self:flex-start}
