@@ -310,17 +310,17 @@ var BASE = [
   {id:"espresso", name:"Espresso", target:20, unit:"Espresso", steps:[1]},
   {id:"zigaretten", name:"Zigaretten", target:80, unit:"Tschick", steps:[1,5]}
  ]},
- {name:"Games", goals:[
-  {id:"minecraft", name:"Minecraft Hardcore", check:true, rule:"Enderdrache besiegen, keiner stirbt."},
-  {id:"cs", name:"CS", check:true, rule:"Ein Match gewinnen."},
-  {id:"lol", name:"LoL", check:true, rule:"Ein Game gewinnen."},
-  {id:"geoguessr", name:"GeoGuessr 20.000+", check:true, rule:"Eine Runde mit 20.000 Punkten oder mehr."}
- ]},
- {name:"Geschick", goals:[
+ {key:"3", name:"Geschick", goals:[
   {id:"pingpong", name:"9er Pingpong", check:true},
   {id:"escaperoom", name:"Escaperoom", check:true},
   {id:"puzzle", name:"1000-Teile-Puzzle", check:true, rule:"Letztes Teil gelegt."},
   {id:"fische", name:"Fische fangen", target:2, unit:"Fische", steps:[1]}
+ ]},
+ {key:"2", name:"Games", goals:[
+  {id:"minecraft", name:"Minecraft Hardcore", check:true, rule:"Enderdrache besiegen, keiner stirbt."},
+  {id:"cs", name:"CS", check:true, rule:"Ein Match gewinnen."},
+  {id:"lol", name:"LoL", check:true, rule:"Ein Game gewinnen."},
+  {id:"geoguessr", name:"GeoGuessr 20.000+", check:true, rule:"Eine Runde mit 20.000 Punkten oder mehr."}
  ]}
 ];
 var CATS = [], GOALS = [], GBY = {}, goalSig = null, catSig = null, wantCat = null;
@@ -328,7 +328,7 @@ function stepsFor(t){ return t<=30?[1]:(t<=250?[1,5,10]:[5,10,25]); }
 function applyGoals(){
   var o=S.cfg.goals||{}, hid=Array.isArray(o._hidden)?o._hidden:[], cus=Array.isArray(o._custom)?o._custom:[];
   GOALS=[]; GBY={};
-  var all=BASE.map(function(c,ci){return {key:String(ci),name:c.name,goals:c.goals}});
+  var all=BASE.map(function(c,ci){return {key:c.key||String(ci),name:c.name,goals:c.goals}});
   (Array.isArray(o._cats)?o._cats:[]).forEach(function(k){ if(k&&typeof k.id==="string"&&/^k[a-z0-9]{1,20}$/.test(k.id)) all.push({key:k.id,name:String(k.name||"Kategorie").slice(0,28),goals:[],custom:true}); });
   CATS=all.map(function(c){
     var gs=[], ci=c.key;
@@ -453,13 +453,14 @@ var ICONS={
 var IMG={};
 function slug(n){ return String(n).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40); }
 function ico(g){
-  var sl=slug(g.name);
-  if(sl){
-    if(IMG[sl]===undefined){ IMG[sl]="wait"; var im=new Image(); im.onload=function(){ IMG[sl]=true; render(); }; im.onerror=function(){ IMG[sl]=false; }; im.src="icons/"+sl+".png"; }
-    if(IMG[sl]===true) return '<span class="ico pic"><img src="icons/'+sl+'.png" alt=""></span>';
-  }
   var n=String(g.name).toLowerCase(), k="def";
   for(var i=0;i<THEMES.length;i++) if(THEMES[i][0].test(n)){ k=THEMES[i][1]; break; }
+  var cand=[slug(g.name)]; if(!g.custom) cand.push(g.id); if(k!=="def") cand.push(k);
+  var hit=null;
+  cand.forEach(function(f){ if(!f) return;
+    if(IMG[f]===undefined){ IMG[f]="wait"; var im=new Image(); im.onload=function(){ IMG[f]=true; render(); }; im.onerror=function(){ IMG[f]=false; }; im.src="icons/"+f+".png"; }
+    if(IMG[f]===true&&!hit) hit=f; });
+  if(hit) return '<span class="ico pic"><img src="icons/'+hit+'.png" alt=""></span>';
   var d=ICONS[k]||ICONS.def;
   return '<span class="ico" style="--ic:'+d[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d[1]+'</svg></span>';
 }
