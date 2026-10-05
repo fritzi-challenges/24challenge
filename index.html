@@ -148,6 +148,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .pdot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pc);margin-right:5px;vertical-align:middle}
 
 /* picker window */
+#optShade{position:fixed;inset:0;z-index:19;background:rgba(4,8,14,.66)}
+#view-optionen{position:fixed;z-index:20;top:max(12px,4vh);bottom:max(12px,4vh);left:0;right:0;margin-inline:auto;width:min(920px,calc(100% - 20px));overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 18px 18px;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+#view-optionen .opt-head{position:sticky;top:-16px;z-index:2;background:var(--bg);margin:-16px -18px 0;padding:14px 18px 10px;display:flex;flex-wrap:nowrap;align-items:center;gap:10px}
+#view-optionen .opt-head .seg{flex:1 1 0;min-width:0}
+#view-optionen #optBack{flex:0 0 auto}
+#view-optionen #optBack{order:2;margin-left:auto;width:38px;height:38px;padding:0;font-size:1.1rem;border-radius:50%}
 .modal{position:fixed;inset:0;z-index:25;background:rgba(4,8,14,.62);display:grid;place-items:center;padding:16px}
 .modal-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;width:min(380px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
 .pick-list{display:flex;flex-direction:column;gap:8px}
@@ -473,9 +479,10 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 
   <section class="view" id="view-abschluss" hidden></section>
 
+  <div id="optShade" hidden></div>
   <section class="view" id="view-optionen" hidden>
     <div class="opt-head">
-      <button class="btn" id="optBack">← Zurück</button>
+      <button class="btn" id="optBack" aria-label="Einstellungen schließen" title="Schließen">✕</button>
       <div class="seg" id="optSeg" role="group" aria-label="Bereich der Einstellungen">
         <button data-op="spieler">Spieler</button>
         <button data-op="aufgaben">Aufgaben</button>
@@ -1186,8 +1193,9 @@ document.addEventListener("pointerdown",function(){
 },{passive:true});
 document.addEventListener("keydown",function(e){
   if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.matches&&e.target.matches("[data-card]")){ e.preventDefault(); var id=e.target.dataset.card; S.open=S.open===id?null:id; render(); var again=document.querySelector('[data-card="'+id+'"]'); if(again) again.focus(); return; }
+  if(e.key==="Escape"&&S.opt&&$("rst").hidden&&$("edit").hidden&&$("prof").hidden&&$("pick").hidden){ S.opt=false; renderAll(); return; }
   if(e.key==="Escape"){ if(!$("rst").hidden) $("rst").hidden=true; else if(!$("edit").hidden){ $("edit").hidden=true; editG=null; } else if(!$("prof").hidden) $("prof").hidden=true; else if(!$("pick").hidden) closePick(); else tvOff(); } });
-document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); if(e.target&&e.target.id==="prof") $("prof").hidden=true; if(e.target&&e.target.id==="edit"){ $("edit").hidden=true; editG=null; } });
+document.addEventListener("click",function(e){ if(e.target&&e.target.id==="optShade"){ S.opt=false; renderAll(); } if(e.target&&e.target.id==="pick") closePick(); if(e.target&&e.target.id==="prof") $("prof").hidden=true; if(e.target&&e.target.id==="edit"){ $("edit").hidden=true; editG=null; } });
 function renderOp(){
   var op=S.op||"spieler";
   Array.prototype.forEach.call(document.querySelectorAll("#settings .op"),function(x){x.hidden=x.dataset.panel!==op});
@@ -1233,13 +1241,13 @@ function renderNotice(){
   else if(S.mode==="error") m="Keine Verbindung zur Datenbank. Prüf Internet, URL, Key und ob das SQL-Setup gelaufen ist. Die Seite versucht es alle 15 Sekunden erneut.";
   n.textContent=m; n.hidden=!m;
 }
-var TABS=["ziele","tabelle","verlauf","abschluss","optionen"];
+var TABS=["ziele","tabelle","verlauf","abschluss"];
 function effTab(){ if(S.tv) return (S.tvView==="end"||(S.tvView==null&&S.fin))?"abschluss":"ziele"; return S.tab; }
 function renderTabs(){
   var endOk=!!(S.fin||S.endPrev);
   if(S.tab==="abschluss"&&!endOk) S.tab="ziele";
-  $("tabEnd").hidden=!endOk; $("optBtn").setAttribute("aria-pressed",String(S.tab==="optionen"));
-  $("tabs").hidden=S.tab==="optionen"&&!S.tv;
+  $("tabEnd").hidden=!endOk; var oo=!!S.opt&&!S.tv; $("optBtn").setAttribute("aria-pressed",String(oo));
+  $("view-optionen").hidden=!oo; $("optShade").hidden=!oo; document.documentElement.style.overflow=oo?"hidden":"";
   var tab=effTab();
   document.body.classList.toggle("tvend",!!S.tv&&tab==="abschluss");
   $("tvSwap").hidden=true; $("tvSwap").textContent=tab==="abschluss"?"Aufgaben":"Scoreboard";
@@ -1325,13 +1333,13 @@ document.addEventListener("click",function(ev){
   if(b.id==="profCancel"){ $("prof").hidden=true; return; }
   if(d.setme!==undefined){ flush(); S.me=Number(d.setme); ls("challenge24-me",String(S.me)); $("prof").hidden=true; renderWho(); render(); return; }
   if(d.op){ S.op=d.op; renderOp(); window.scrollTo(0,0); return; }
-  if(b.id==="optBack"){ S.tab="ziele"; renderAll(); window.scrollTo(0,0); return; }
-  if(b.id==="optBtn"){ S.tab=S.tab==="optionen"?"ziele":"optionen"; renderAll(); window.scrollTo(0,0); return; }
+  if(b.id==="optBack"){ S.opt=false; renderAll(); return; }
+  if(b.id==="optBtn"){ S.opt=!S.opt; renderAll(); if(S.opt) $("view-optionen").scrollTop=0; return; }
   if(b.id==="endImg"){ var go=function(){ try{ makePoster(); }catch(e){ toast("Das Bild konnte nicht erstellt werden."); } }; if(document.fonts&&document.fonts.ready) document.fonts.ready.then(go,go); else go(); return; }
   if(b.id==="muteBtn"){ S.mute=!S.mute; ls("challenge24-mute",S.mute?"1":"0"); renderOp(); if(!S.mute) ding(true); return; }
-  if(b.id==="endShow"){ S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
+  if(b.id==="endShow"){ S.opt=false; S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="finClose"){ if(finStop) finStop(); if(!S.fin) S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
-  if(b.id==="finTest"){ finale(); return; }
+  if(b.id==="finTest"){ S.opt=false; renderAll(); finale(); return; }
   if(d.gv){ S.gv=d.gv; ls("challenge24-gv",d.gv); render(); return; }
   if(d.urg!==undefined){ if(!canAct()) return; var go=JSON.parse(JSON.stringify(S.cfg.goals||{})), ul=Array.isArray(go._urgent)?go._urgent.filter(function(id){return GBY[id]}):[], ix=ul.indexOf(d.urg);
     if(ix>=0) ul.splice(ix,1); else { var TT=totals(); ul=ul.filter(function(id){return !gdone(GBY[id],TT[id])}); if(ul.length>=3){ toast("Maximal 3 Aufgaben können markiert sein. Nimm zuerst eine Nadel raus."); return; } ul.push(d.urg); } go._urgent=ul; S.cfg.goals=go; render();
