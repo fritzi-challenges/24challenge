@@ -224,6 +224,10 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
         <label>Startzeit (falls ihr schon losgelegt habt)<input id="startAt" type="datetime-local"></label>
         <button class="btn" id="saveBtn">Speichern</button>
       </div>
+      <div class="row" id="stopRow" hidden>
+        <button class="btn danger" id="stopBtn">Challenge beenden</button>
+        <span class="rule" id="stopHint">Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten.</span>
+      </div>
       <div class="row">
         <button class="btn danger" id="resetBtn">Alles zurücksetzen</button>
         <span class="rule" id="resetHint">Löscht alle Einträge und die Startzeit.</span>
@@ -320,7 +324,7 @@ var DEFAULT_NAMES = ["Spieler 1","Spieler 2","Spieler 3","Spieler 4"];
 
 var S = {entries:[], cfg:{names:DEFAULT_NAMES.slice(), goals:{}, startAt:null}, me:null, mode:"loading", canWrite:true, tab:"ziele", gv:"karten"};
 var pending = {}; // goalId -> amount not yet written (for S.me)
-var flushTimer = null, store = null, toastTimer = null, resetArmed = false;
+var flushTimer = null, store = null, toastTimer = null, resetArmed = false, startArmed = false, stopStage = 0, stopTimer = null;
 var $ = function(id){return document.getElementById(id)};
 
 function ls(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
@@ -360,7 +364,7 @@ function renderClock(){
   $("startBtn").hidden=!!st || !canAct();
 }
 function goalCard(g,t,frac){
-  var dis=(!canAct()||S.me===null)?" disabled":"", done, h;
+  var dis=canAct()?"":" disabled", done, h;
   if(g.check){
     var e=t.last; done=t.sum>0;
     var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"";
@@ -454,7 +458,8 @@ function renderSettings(){
   $("goalHint").textContent=S.cfg.startAt?"Die Challenge läuft, die Ziele sind gesperrt. Zum Ändern die Startzeit leeren und speichern.":"Name, Beschreibung und Menge jeder Aufgabe lassen sich ändern, solange die Challenge nicht gestartet ist. Danach auf „Speichern“ tippen.";
   var st=S.cfg.startAt;
   if(st){var d=new Date(st-new Date(st).getTimezoneOffset()*60000); $("startAt").value=d.toISOString().slice(0,16);} else $("startAt").value="";
-  ["saveBtn","resetBtn"].forEach(function(id){$(id).disabled=!canAct()});
+  ["saveBtn","resetBtn","stopBtn"].forEach(function(id){$(id).disabled=!canAct()});
+  $("stopRow").hidden=!S.cfg.startAt;
 }
 function renderNotice(){
   var n=$("notice"), m="";
@@ -534,6 +539,7 @@ document.addEventListener("click",function(ev){
   if(!store) return;
   if(d.add){ add(d.add,Number(d.n)); }
   else if(d.undo){
+    if(S.me===null){ toast("Wähl zuerst oben, für wen du einträgst."); return; }
     if(pending[d.undo]){ delete pending[d.undo]; render(); return; }
     var mine=S.entries.filter(function(e){return e.g===d.undo&&e.p===S.me}).sort(function(a,b){return b.t-a.t})[0];
     if(!mine){toast("Hier gibt es von "+pname(S.me)+" noch keinen Eintrag.");return}
@@ -542,7 +548,19 @@ document.addEventListener("click",function(ev){
   else if(d.check){ if(S.me===null){toast("Wähl zuerst oben, für wen du einträgst.");return} store.add({g:d.check,p:S.me,n:1,t:Date.now()},"check-"+d.check).catch(wfail); }
   else if(d.uncheck){ S.entries.filter(function(e){return e.g===d.uncheck}).forEach(function(e){store.del(e.id).catch(wfail)}); }
   else if(d.del){ store.del(d.del).then(function(){toast("Eintrag gelöscht")}).catch(wfail); }
-  else if(b.id==="startBtn"){ store.cfg({names:S.cfg.names,goals:S.cfg.goals||{},startAt:Date.now()}).then(function(){toast("Die 24 Stunden laufen")}).catch(wfail); }
+  else if(b.id==="stopBtn"){
+    var STOP=[["Challenge beenden","Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten."],["Bist du sicher?","Nochmal tippen, wenn du die laufende Challenge wirklich beenden willst."],["Bist du ganz ganz sicher?","Letzte Chance. Noch einmal tippen und die Uhr ist weg."]];
+    var setStop=function(i){ stopStage=i; b.textContent=STOP[i][0]; $("stopHint").textContent=STOP[i][1]; };
+    clearTimeout(stopTimer);
+    if(stopStage<2){ setStop(stopStage+1); stopTimer=setTimeout(function(){setStop(0)},6000); return; }
+    setStop(0);
+    store.cfg({names:S.cfg.names,goals:S.cfg.goals||{},startAt:null}).then(function(){toast("Challenge beendet. Die Uhr steht wieder auf 24:00:00.")}).catch(wfail);
+  }
+  else if(b.id==="startBtn"){
+    if(!startArmed){ startArmed=true; b.textContent="Wirklich starten? Nochmal tippen";
+      setTimeout(function(){startArmed=false;b.textContent="Challenge starten"},4000); return; }
+    startArmed=false; b.textContent="Challenge starten";
+    store.cfg({names:S.cfg.names,goals:S.cfg.goals||{},startAt:Date.now()}).then(function(){toast("Die 24 Stunden laufen")}).catch(wfail); }
   else if(d.rm||d.rmcat||b.id==="addBtn"||b.id==="addCatBtn"||b.id==="restoreBtn"){
     if(S.cfg.startAt) return;
     var o=readGoals(), msg;
