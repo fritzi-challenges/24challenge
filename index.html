@@ -44,10 +44,10 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .board-top{display:flex;align-items:flex-end;gap:12px}
 .board-stats{margin-left:auto}
 .tvb{padding:3px 9px;font-size:.75rem;letter-spacing:.06em;color:var(--muted);align-self:flex-start}
-.clock{font-size:clamp(2.2rem,9.5vw,3.4rem);font-weight:700;line-height:.9}
-.clock-label,.stat-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap}
-.board-stats{display:flex;gap:14px;text-align:right}
-.stat .num{font-size:1.45rem;font-weight:600;line-height:1;white-space:nowrap}
+.clock{font-size:clamp(2.5rem,10.5vw,5.2rem);font-weight:700;line-height:.9}
+.clock-label,.stat-label{font-size:clamp(.68rem,1vw,.9rem);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap}
+.board-stats{display:flex;gap:clamp(14px,2.4vw,36px);text-align:right}
+.stat .num{font-size:clamp(1.5rem,3.4vw,2.8rem);font-weight:600;line-height:1;white-space:nowrap}
 .totalbar{height:6px;background:var(--track);border-radius:3px;overflow:hidden}
 .totalbar i{display:block;height:100%;background:var(--accent);transition:width .3s}
 .who{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
@@ -67,9 +67,14 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
 /* goals */
 #goals{display:grid;gap:22px}
-@media (min-width:980px){#goals{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:stretch}}
-.cat>.grid{flex:1;grid-auto-rows:1fr}
-.goal .btns{margin-top:auto}
+@media (min-width:980px){#goals{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}}
+.cat>.grid{align-content:start}
+body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
+.goal{min-height:104px;justify-content:center}
+.goal.tap{cursor:pointer}
+.goal.tap:hover{border-color:var(--muted)}
+.goal.tap.open{border-color:var(--accent)}
+.goal .btns{margin-top:4px}
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
 .goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -436,7 +441,7 @@ function buildGoalInputs(){
 }
 var DEFAULT_NAMES = ["Spieler 1","Spieler 2","Spieler 3","Spieler 4"];
 
-var S = {entries:[], cfg:{names:DEFAULT_NAMES.slice(), goals:{}, startAt:null}, me:null, mode:"loading", canWrite:true, tab:"ziele", gv:"karten"};
+var S = {entries:[], cfg:{names:DEFAULT_NAMES.slice(), goals:{}, startAt:null}, me:null, mode:"loading", canWrite:true, tab:"ziele", gv:"karten", open:null};
 var pending = {}; // goalId -> amount not yet written (for S.me)
 var flushTimer = null, store = null, toastTimer = null, resetArmed = false, startArmed = false, stopStage = 0, stopTimer = null;
 var $ = function(id){return document.getElementById(id)};
@@ -530,16 +535,16 @@ function goalCard(g,t,frac,ro){
     for(var w=0;w<NP();w++) if(t.by[w]>0) who+='<span class="pp on" style="--pc:var(--p'+w+')">'+esc(pname(w))+'</span>';
     h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'>'+(ro?'<span class="box'+(done?' on':'')+'" aria-hidden="true">'+(done?'✓':'')+'</span>'
       :'<button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+': auswählen, wer es gemacht hat" data-pick="'+g.id+'"'+dis+'>'+(done?'✓':'')+'</button>');
-    h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(who?'<div class="pwho">'+who+'</div>':'')+(done&&e?'<div class="rule">Abgehakt um '+tm+' Uhr</div>':'')+'</div>';
+    h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(who?'<div class="pwho">'+who+'</div>':'')+'</div>';
     return h+ico(g)+'</article>';
   }
   done=t.sum>=g.target-1e-9; var rest=Math.max(0,g.target-t.sum), prog=Math.min(1,t.sum/g.target);
   var st=done?'<span class="state ok">Fertig</span>':(S.cfg.startAt&&prog+0.03<frac?'<span class="state late">Hinten</span>':'');
-  h='<article class="goal'+(done?" done":"")+'"'+th(g)+'><div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
+  h='<article class="goal tap'+(done?" done":"")+(S.open===g.id?" open":"")+'" data-card="'+g.id+'" tabindex="0" aria-expanded="'+(S.open===g.id)+'"'+th(g)+'><div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar">';
   for(var i=0;i<NP();i++){ if(t.by[i]>0) h+='<i style="width:'+Math.min(100,t.by[i]/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+i+')" title="'+esc(pname(i))+': '+fmt(t.by[i])+'"></i>'; }
   h+='</div>'+(S.cfg.startAt&&!done?'<span class="soll" style="left:'+(frac*100)+'%" title="Soll laut Uhr"></span>':'')+'</div>';
-  h+=(done||st?'<div class="meta"><span>'+(done?"Ziel erreicht":"")+'</span>'+st+'</div>':'')+'<div class="btns">';
+  h+=(done||st?'<div class="meta"><span>'+(done?"Ziel erreicht":"")+'</span>'+st+'</div>':'')+'<div class="btns"'+(S.open===g.id?'':' hidden')+'>';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
   h+='<button class="undo" data-undo="'+g.id+'" title="Meinen letzten Eintrag hier zurücknehmen" aria-label="Letzten Eintrag bei '+esc(g.name)+' zurücknehmen"'+dis+'>↶</button></div></article>';
   return h;
@@ -682,7 +687,9 @@ function celebrate(gs){ toast(gs.map(function(g){return g.name}).join(", ")+" ge
 document.addEventListener("pointerdown",function(){
   try{ if(!actx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); } if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
 },{passive:true});
-document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ if(!$("pick").hidden) closePick(); else tvOff(); } });
+document.addEventListener("keydown",function(e){
+  if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.matches&&e.target.matches("[data-card]")){ e.preventDefault(); var id=e.target.dataset.card; S.open=S.open===id?null:id; render(); var again=document.querySelector('[data-card="'+id+'"]'); if(again) again.focus(); return; }
+  if(e.key==="Escape"){ if(!$("pick").hidden) closePick(); else tvOff(); } });
 document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); });
 function renderSettings(){
   if($("settings").contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return;
@@ -784,7 +791,9 @@ function add(g,n){
   clearTimeout(flushTimer); flushTimer=setTimeout(flush,700);
 }
 document.addEventListener("click",function(ev){
-  var b=ev.target.closest("button"); if(!b||b.disabled) return; var d=b.dataset;
+  var b=ev.target.closest("button");
+  if(!b){ var card=ev.target.closest("[data-card]"); if(card){ S.open=S.open===card.dataset.card?null:card.dataset.card; render(); } return; }
+  if(b.disabled) return; var d=b.dataset;
   if(d.me!==undefined){ flush(); var i=Number(d.me); S.me=(S.me===i?null:i); ls("challenge24-me",S.me===null?"":String(S.me)); renderWho(); render(); return; }
   if(b.id==="tvBtn"){ S.tv=true; try{ var fs=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); if(fs&&fs.catch) fs.catch(function(){}); }catch(e){}
     try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){wake=l}).catch(function(){}); }catch(e){}
