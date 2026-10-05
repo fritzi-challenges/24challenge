@@ -8,23 +8,23 @@
 <style>
 /* Layout: sticky scoreboard strip (clock, total, who is entering) over a grid of goal cards grouped by category; table and log below. */
 :root{
-  --bg:#f3f1ea; --surface:#fffdf7; --sunk:#e8e4d8; --line:#d3cdbd;
-  --fg:#1d2420; --muted:#5f6a62; --accent:#d2600f; --on-accent:#fff;
-  --good:#1f8a55; --warn:#b3261e; --track:#ddd8c9;
+  --bg:#eceff4; --surface:#f9fafc; --sunk:#dfe4ec; --line:#c6cfdb;
+  --fg:#1a2029; --muted:#586475; --accent:#d2600f; --on-accent:#fff;
+  --good:#1f8a55; --warn:#b3261e; --track:#d3dae4;
   --p0:#2f7fd1; --p1:#1f9a66; --p2:#8a5bd0; --p3:#cf3f86; --p4:#b58900; --p5:#0e8f9c; --p6:#c2571a; --p7:#6b7480;
   --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
   --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#141a17; --surface:#1d2521; --sunk:#111613; --line:#33403a;
-  --fg:#eef1ea; --muted:#9aa79f; --accent:#ff8a2b; --on-accent:#1a1206;
-  --good:#4fcf8e; --warn:#ff7a70; --track:#2a3530;
+  --bg:#12161d; --surface:#1b212b; --sunk:#0d1117; --line:#2f3947;
+  --fg:#e8ecf2; --muted:#92a0b3; --accent:#ff8a2b; --on-accent:#1a1206;
+  --good:#4fcf8e; --warn:#ff7a70; --track:#263040;
   --p0:#5aa9f5; --p1:#4fcf8e; --p2:#b48cf2; --p3:#f06aa8; --p4:#e6c13a; --p5:#3ccbd8; --p6:#f08a4b; --p7:#a9b2bc;
   color-scheme:dark } }
 :root[data-theme="dark"]{
-  --bg:#141a17; --surface:#1d2521; --sunk:#111613; --line:#33403a;
-  --fg:#eef1ea; --muted:#9aa79f; --accent:#ff8a2b; --on-accent:#1a1206;
-  --good:#4fcf8e; --warn:#ff7a70; --track:#2a3530;
+  --bg:#12161d; --surface:#1b212b; --sunk:#0d1117; --line:#2f3947;
+  --fg:#e8ecf2; --muted:#92a0b3; --accent:#ff8a2b; --on-accent:#1a1206;
+  --good:#4fcf8e; --warn:#ff7a70; --track:#263040;
   --p0:#5aa9f5; --p1:#4fcf8e; --p2:#b48cf2; --p3:#f06aa8; --p4:#e6c13a; --p5:#3ccbd8; --p6:#f08a4b; --p7:#a9b2bc;
   color-scheme:dark }
 *{box-sizing:border-box}
@@ -206,6 +206,8 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 .catchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:2px 2px 2px 10px;font-weight:600}
 .addbox{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
 .btn{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:9px 14px;font-weight:600}
+.savebar{display:flex;justify-content:flex-end;position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.savebar .btn{pointer-events:auto;background:var(--accent);color:var(--on-accent);border-color:var(--accent);padding:12px 28px;font-size:1.05rem;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .btn.danger{color:var(--warn);border-color:var(--warn)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;max-width:calc(100% - 32px);z-index:10}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}#finale,#finale *{animation:none!important}}
@@ -292,7 +294,6 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
       </div>
       <div class="row">
         <label>Startzeit (falls ihr schon losgelegt habt)<input id="startAt" type="datetime-local"></label>
-        <button class="btn" id="saveBtn">Speichern</button>
       </div>
       <div class="row" id="stopRow" hidden>
         <button class="btn danger" id="stopBtn">Challenge beenden</button>
@@ -306,6 +307,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
         <button class="btn danger" id="resetBtn">Alles zurücksetzen</button>
         <span class="rule" id="resetHint">Löscht alle Einträge und die Startzeit.</span>
       </div>
+      <div class="savebar"><button class="btn" id="saveBtn">Speichern</button></div>
     </div>
   </section>
 </div>
