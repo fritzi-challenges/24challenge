@@ -74,7 +74,7 @@ body.tv #profBtn{display:none}
 .tabs{display:flex;margin-inline:-8px;margin-top:clamp(10px,2vh,22px)}
 .tabs button{flex:1;border:0;background:none;padding:9px 4px 7px;font-family:var(--display);font-size:1.05rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:3px solid transparent}
 .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
-.start{width:100%;background:var(--accent);color:var(--on-accent);border:0;border-radius:8px;padding:12px 18px;font-family:var(--display);font-size:1.3rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.start{align-self:center;background:var(--accent);color:var(--on-accent);border:0;border-radius:8px;padding:7px 22px;font-family:var(--display);font-size:1.05rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .notice{background:var(--sunk);border-left:4px solid var(--accent);padding:10px 12px;font-size:.92rem}
 .view{display:flex;flex-direction:column;gap:16px;padding-top:14px}
 
@@ -83,14 +83,16 @@ body.tv #profBtn{display:none}
 @media (min-width:980px){#goals{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}}
 .cat>.grid{align-content:start}
 body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
-.goal{min-height:128px;justify-content:center}
+.goal{min-height:100px;justify-content:center}
+.goal .ico{width:42px;height:42px}
+.goal .ico svg{width:26px;height:26px}
 .goal.tap{cursor:pointer}
 .goal.tap:hover{border-color:var(--muted)}
 .goal.tap.open{border-color:var(--accent)}
 .goal .btns{margin-top:4px}
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
-.goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .goal.done{border-color:var(--good);background:color-mix(in srgb,var(--good) 11%,var(--surface))}
 .goal.done h3{color:color-mix(in srgb,var(--good) 55%,var(--fg))}
 .goal.done:not(.check) h3::before{content:"✓ ";color:var(--good)}
@@ -100,7 +102,7 @@ body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
 .grow.done:not(.chk) .gname::before{content:"✓ ";color:var(--good)}
 .goal-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .count{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
-.count b{font-family:var(--display);font-size:1.9rem;font-weight:700;line-height:.9;font-variant-numeric:tabular-nums}
+.count b{font-family:var(--display);font-size:1.6rem;font-weight:700;line-height:.9;font-variant-numeric:tabular-nums}
 .count span{color:var(--muted)}
 .bar{height:12px;background:var(--track);border-radius:4px;display:flex;overflow:hidden}
 .bar i{display:block;height:100%;transition:width .3s}
@@ -736,7 +738,7 @@ function renderClock(){
   var s=Math.floor(left/1000), hh=Math.floor(s/3600), mm=Math.floor(s%3600/60), ss=s%60;
   function p(n){return (n<10?"0":"")+n}
   $("clock").textContent=p(hh)+":"+p(mm)+":"+p(ss);
-  var cl=!st?"Noch nicht gestartet":(stopped?"Alles geschafft · Uhr angehalten":(left===0?"Zeit abgelaufen":"")); $("clockLabel").textContent=cl; $("clockLabel").hidden=!cl;
+  var cl=!st?"":(stopped?"Alles geschafft · Uhr angehalten":(left===0?"Zeit abgelaufen":"")); $("clockLabel").textContent=cl; $("clockLabel").hidden=!cl;
   $("startBtn").hidden=!!st || !canAct();
   var up=!!st&&left===0&&!stopped; if(up!==wasUp){ wasUp=up; if(up) setTimeout(renderAll,0); }
 }
@@ -901,7 +903,7 @@ function render(){
   });
   var main=$("goals"); main.innerHTML=h;
   var pct=GOALS.length?(done===GOALS.length?100:Math.min(99,Math.floor(acc/GOALS.length*100))):0;
-  $("totalFill").style.width=pct+"%"; $("totalText").textContent=pct+" % · "+done+" von "+GOALS.length+" Aufgaben";
+  $("totalFill").style.width=pct+"%"; $("totalText").textContent=pct+" %\u2003·\u2003"+done+" von "+GOALS.length+" Aufgaben";
   // table
   if(S.tab==="tabelle"&&!S.tv) renderOverview(T,frac);
   if(S.tab==="dringend"&&!S.tv) renderUrgent(T);
