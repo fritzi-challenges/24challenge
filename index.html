@@ -69,7 +69,13 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
 .goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.goal.done{border-color:var(--good)}
+.goal.done{border:2px solid var(--good);background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.goal.done h3{color:var(--good)}
+.goal.done:not(.check) h3::before{content:"✓ "}
+.goal.done .count b{color:var(--good)}
+.grow.done{background:color-mix(in srgb,var(--good) 16%,var(--surface))}
+.grow.done .gname{color:var(--good)}
+.grow.done:not(.chk) .gname::before{content:"✓ "}
 .goal-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .count{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
 .count b{font-family:var(--display);font-size:1.9rem;font-weight:700;line-height:.9;font-variant-numeric:tabular-nums}
@@ -96,7 +102,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{flex:1;border:0;background:none;padding:9px 6px;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.grid.rows{gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.grid.rows{overflow:hidden;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .grow{display:grid;grid-template-columns:1fr auto;gap:5px 10px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:baseline;min-width:0}
 .grow:last-child{border-bottom:0}
 .grow .gname{font-weight:600;min-width:0}
@@ -104,6 +110,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .grow .gcount b{color:var(--fg);font-weight:700}
 .grow.done .gcount,.grow.done .gcount b{color:var(--good)}
 .grow .bar{grid-column:1/-1;height:8px}
+
+/* tv mode */
+.tvx{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;z-index:9;opacity:.55}
+.tvx:hover,.tvx:focus-visible{opacity:1}
+body.tv .who,body.tv .tabs,body.tv .seg,body.tv #startBtn,body.tv #gvHint,body.tv #tvBtn{display:none!important}
+body.tv .wrap{max-width:none}
+body.tv .board{position:static;border-bottom:0;padding-top:16px}
+body.tv .clock{font-size:clamp(4rem,13vw,11rem)}
+body.tv .clock-label,body.tv .stat-label{font-size:clamp(.8rem,1.4vw,1.3rem)}
+body.tv .stat .num{font-size:clamp(2rem,5vw,4.5rem)}
+body.tv .board-stats{gap:clamp(16px,4vw,56px)}
+body.tv .totalbar{height:14px}
+body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:start}
+body.tv h2{font-size:1.5rem}
+body.tv .grow{font-size:1.35rem;padding:12px 16px}
+body.tv .grow .gcount{font-size:1.6rem}
+body.tv .grow .bar{height:16px}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
 
 /* table + log */
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
@@ -165,6 +189,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
     </nav>
   </header>
 
+  <button class="btn tvx" id="tvExit" hidden>✕ Schließen</button>
   <div class="notice" id="notice" hidden></div>
 
   <div class="view" id="view-ziele">
@@ -174,6 +199,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
       <button data-gv="liste">Überblick</button>
       <button data-gv="ich">Mein Anteil</button>
     </div>
+    <button class="btn" id="tvBtn">Fernseher-Modus</button>
     <div class="rule" id="gvHint" hidden>Wähl oben einen Namen, dann siehst du hier deinen Anteil.</div>
     <main id="goals"></main>
   </div>
@@ -390,30 +416,30 @@ function segs(g,t){
 }
 function goalRow(g,t){
   if(g.check){ var e=t.last, d=t.sum>0;
-    return '<article class="grow'+(d?" done":"")+'"><span class="gname">'+esc(g.name)+'</span><span class="gcount">'+(d&&e?esc(pname(e.p))+' ':'')+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
+    return '<article class="grow chk'+(d?" done":"")+'"><span class="gname">'+esc(g.name)+'</span><span class="gcount">'+(d&&e?esc(pname(e.p))+' ':'')+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
   var done=t.sum>=g.target-1e-9;
   return '<article class="grow'+(done?" done":"")+'"><span class="gname">'+esc(g.name)+'</span><span class="gcount num"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'</span><div class="bar">'+segs(g,t)+'</div></article>';
 }
 function goalMine(g,t,frac){
   if(g.check) return goalCard(g,t,frac);
-  var dis=canAct()?"":" disabled", mine=t.by[S.me], share=g.target/NP(), done=mine>=share-1e-9, rest=Math.max(0,share-mine);
-  var h='<article class="goal'+(done?" done":"")+'"><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(mine)+'</b><span>/ '+fmt(share)+'</span></div></div>';
-  h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar"><i style="width:'+Math.min(100,mine/share*100)+'%;background:var(--p'+S.me+')"></i></div></div>';
-  h+='<div class="meta"><span>'+(done?"Dein Anteil ist geschafft":"Dir fehlen noch "+fmt(rest))+' · Team '+fmt(t.sum)+' / '+fmt(g.target)+'</span>'+(done?'<span class="state ok">Fertig</span>':'')+'</div><div class="btns">';
+  var dis=canAct()?"":" disabled", mine=t.by[S.me], done=t.sum>=g.target-1e-9, pct=Math.round(mine/g.target*100), tpct=Math.round(Math.min(1,t.sum/g.target)*100);
+  var h='<article class="goal'+(done?" done":"")+'"><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+pct+' %</b></div></div>';
+  h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar"><i style="width:'+Math.min(100,mine/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+S.me+')"></i></div></div>';
+  h+='<div class="meta"><span>'+fmt(mine)+' von '+fmt(g.target)+' von dir · Team '+tpct+' %</span>'+(done?'<span class="state ok">Fertig</span>':'')+'</div><div class="btns">';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
   h+='<button class="undo" data-undo="'+g.id+'" title="Meinen letzten Eintrag hier zurücknehmen" aria-label="Letzten Eintrag bei '+esc(g.name)+' zurücknehmen"'+dis+'>↶</button></div></article>';
   return h;
 }
 function render(){
-  var gv=(S.gv==="ich"&&S.me===null)?"karten":S.gv;
-  $("gvHint").hidden=!(S.gv==="ich"&&S.me===null);
+  var gv=S.tv?"liste":((S.gv==="ich"&&S.me===null)?"karten":S.gv), cur={};
+  $("gvHint").hidden=!(S.gv==="ich"&&S.me===null)||!!S.tv;
   Array.prototype.forEach.call($("seg").children,function(b){b.setAttribute("aria-pressed",String(b.dataset.gv===S.gv))});
   applyGoals();
   var T=totals(), frac=elapsed()/DAY, h="", done=0, acc=0;
   CATS.forEach(function(c){
     if(!c.goals.length) return;
     h+='<section class="cat"><h2>'+esc(c.name)+'</h2><div class="grid'+(gv==="liste"?" rows":"")+'">';
-    c.goals.forEach(function(g){var t=T[g.id], p=g.check?(t.sum>0?1:0):Math.min(1,t.sum/g.target); acc+=p; if(p>=1-1e-9) done++; h+=(gv==="liste"?goalRow(g,t):gv==="ich"?goalMine(g,t,frac):goalCard(g,t,frac));});
+    c.goals.forEach(function(g){var t=T[g.id], p=g.check?(t.sum>0?1:0):Math.min(1,t.sum/g.target); acc+=p; cur[g.id]=p>=1-1e-9; if(cur[g.id]) done++; h+=(gv==="liste"?goalRow(g,t):gv==="ich"?goalMine(g,t,frac):goalCard(g,t,frac));});
     h+='</div></section>';
   });
   var main=$("goals"); main.innerHTML=h;
@@ -434,7 +460,40 @@ function render(){
     lh+='<li><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>'+esc(pname(e.p))+': '+(g.check?esc(g.name)+' abgehakt':'+'+fmt(e.n)+' '+esc(g.name))+'</span>'+(canAct()?'<button data-del="'+esc(e.id)+'">Löschen</button>':'')+'</li>';});
   $("log").innerHTML=lh||'<li class="empty">Noch nichts eingetragen. Wähl oben einen Namen und tipp bei einem Ziel auf Plus.</li>';
   renderClock();
+  if(S.mode!=="loading"){
+    if(prevDone){ var fresh=GOALS.filter(function(g){return cur[g.id]&&prevDone[g.id]===false}); if(fresh.length) celebrate(fresh); }
+    prevDone=cur;
+  }
 }
+var prevDone=null, actx=null, wake=null;
+function tvOff(){ if(!S.tv) return; S.tv=false; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} try{ if(wake){wake.release();wake=null;} }catch(e){} renderAll(); }
+function ding(){
+  if(!actx||actx.state!=="running") return;
+  var t0=actx.currentTime;
+  [523.25,659.25,783.99,1046.5].forEach(function(f,i){
+    var o=actx.createOscillator(), g=actx.createGain(), t=t0+i*0.11;
+    o.type="triangle"; o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.22,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.45);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+0.5); });
+}
+function confetti(){
+  var mq=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)"); if(mq&&mq.matches) return;
+  var old=$("fx"); if(old) old.remove();
+  var c=document.createElement("canvas"); c.id="fx"; document.body.appendChild(c);
+  var W=c.width=window.innerWidth, H=c.height=window.innerHeight, x=c.getContext("2d"), cs=getComputedStyle(document.documentElement), cols=[], ps=[], t0=null, i;
+  for(i=0;i<8;i++){ var v=cs.getPropertyValue("--p"+i).trim(); if(v) cols.push(v); }
+  cols.push(cs.getPropertyValue("--accent").trim()||"#ff8a2b");
+  for(i=0;i<160;i++) ps.push({x:W/2+(Math.random()-.5)*W*.3,y:H*.35,vx:(Math.random()-.5)*16,vy:-Math.random()*15-4,s:5+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.5,c:cols[i%cols.length]});
+  (function step(ts){ if(t0===null) t0=ts; var el=ts-t0; x.clearRect(0,0,W,H);
+    ps.forEach(function(p){ p.vy+=.38; p.x+=p.vx; p.y+=p.vy; p.vx*=.99; p.r+=p.vr;
+      x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.globalAlpha=Math.max(0,1-el/3000); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66); x.restore(); });
+    if(el<3000&&c.isConnected) requestAnimationFrame(step); else c.remove(); })(performance.now());
+}
+function celebrate(gs){ toast(gs.map(function(g){return g.name}).join(", ")+" geschafft!"); ding(); confetti(); }
+document.addEventListener("pointerdown",function(){
+  try{ if(!actx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); } if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
+},{passive:true});
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") tvOff(); });
 function renderSettings(){
   if($("settings").contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return;
   if(nameCount!==NP()){ nameCount=NP(); var nh="";
@@ -470,7 +529,9 @@ function renderNotice(){
 }
 var TABS=["ziele","tabelle","verlauf","optionen"];
 function renderTabs(){
-  TABS.forEach(function(t){$("view-"+t).hidden=S.tab!==t});
+  var tab=S.tv?"ziele":S.tab;
+  TABS.forEach(function(t){$("view-"+t).hidden=tab!==t});
+  document.body.classList.toggle("tv",!!S.tv); $("tvExit").hidden=!S.tv;
   Array.prototype.forEach.call($("tabs").children,function(b){b.setAttribute("aria-selected",String(b.dataset.tab===S.tab))});
 }
 function renderAll(){renderTabs();renderWho();render();renderSettings();renderNotice()}
@@ -534,6 +595,10 @@ function add(g,n){
 document.addEventListener("click",function(ev){
   var b=ev.target.closest("button"); if(!b||b.disabled) return; var d=b.dataset;
   if(d.me!==undefined){ flush(); var i=Number(d.me); S.me=(S.me===i?null:i); ls("challenge24-me",S.me===null?"":String(S.me)); renderWho(); render(); return; }
+  if(b.id==="tvBtn"){ S.tv=true; try{ var fs=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); if(fs&&fs.catch) fs.catch(function(){}); }catch(e){}
+    try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){wake=l}).catch(function(){}); }catch(e){}
+    renderAll(); window.scrollTo(0,0); return; }
+  if(b.id==="tvExit"){ tvOff(); return; }
   if(d.gv){ S.gv=d.gv; ls("challenge24-gv",d.gv); render(); return; }
   if(d.tab){ S.tab=d.tab; ls("challenge24-tab",d.tab); renderTabs(); window.scrollTo(0,0); return; }
   if(!store) return;
