@@ -256,6 +256,18 @@ body.fin-shake .wrap{animation:finshake .12s linear 7}
 /* tv mode */
 .tvx{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;z-index:9;opacity:.55}
 .tvx:hover,.tvx:focus-visible{opacity:1}
+.tvx.tvs{right:132px}
+body.tv .end-only-page{display:none}
+body.tv #view-abschluss{flex:1;display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:clamp(14px,2.4vh,28px) clamp(18px,2.5vw,40px)}
+body.tv #view-abschluss[hidden]{display:none}
+body.tv #view-abschluss .end-hero{grid-column:1/-1;padding:clamp(10px,1.6vh,20px);gap:6px}
+body.tv .end-hero .end-bar{display:none}
+body.tv .end-title{font-size:clamp(2.2rem,5vw,4.6rem)}
+body.tv .end-aw{grid-template-columns:1fr 1fr;gap:8px}
+body.tv .aw{padding:clamp(6px,1.1vh,12px) 12px}
+body.tvend .who{display:none!important}
+body.tv .end-rank .rk{padding-block:clamp(8px,1.4vh,16px);font-size:1.2rem}
+body.tv .aw-title{font-size:clamp(1.2rem,1.7vw,1.9rem)}
 body.tv .tabs,body.tv #optBtn,body.tv .seg,body.tv #startBtn,body.tv #gvHint,body.tv #tvBtn{display:none!important}
 body.tv .wrap{max-width:none;min-height:100vh;min-height:100dvh;padding-inline:clamp(24px,3.5vw,64px);padding-block:clamp(18px,2.5vw,44px)}
 body.tv .board{margin-inline:0;padding-inline:0}
@@ -363,11 +375,12 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
       <button role="tab" data-tab="ziele">Aufgaben</button>
       <button role="tab" data-tab="tabelle">Übersicht</button>
       <button role="tab" data-tab="verlauf">Verlauf</button>
-      <button role="tab" data-tab="abschluss" id="tabEnd" hidden>Abschluss</button>
+      <button role="tab" data-tab="abschluss" id="tabEnd" hidden>Scoreboard</button>
     </nav>
   </header>
 
   <button class="btn tvx" id="tvExit" hidden>✕ Schließen</button>
+  <button class="btn tvx tvs" id="tvSwap" hidden>Scoreboard</button>
   <div class="notice" id="notice" hidden></div>
 
   <div class="view" id="view-ziele">
@@ -444,8 +457,8 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
         <div class="form">
           <div><h3>Vorschau</h3><div class="rule">Nur zum Anschauen, ändert nichts am Stand.</div></div>
           <div class="row">
-            <button class="btn" id="endShow">Abschluss-Übersicht ansehen</button>
-            <button class="btn" id="finTest">Abschluss-Effekt testen</button>
+            <button class="btn" id="endShow">Scoreboard ansehen</button>
+            <button class="btn" id="finTest">Finale testen</button>
           </div>
         </div>
         <div class="form">
@@ -790,7 +803,7 @@ function render(){
     if(dAt!==S.doneAt){ S.doneAt=dAt; renderClock(); }
   }
   renderTabs();
-  if(S.tab==="abschluss"&&!S.tv) renderEnd(T,done,pct);
+  if(effTab()==="abschluss") renderEnd(T,done,pct);
 }
 var finSeen=false, wasUp=false;
 var TITLES={bier:"Bierkönig",leberkas:"Leberkas-Legende",espresso:"Koffein-Junkie",cig:"Kettenraucher",snus:"Snus-Baron",track:"Dauerläufer",mat:"Liegestütz-Maschine",bar:"Klimmzug-König",dart:"Dart-Scharfschütze",fish:"Petrijünger",road:"Kilometerfresser",fry:"Nugget-Vernichter",milk:"Milchbubi"};
@@ -870,7 +883,7 @@ function renderEnd(T,doneN,pct){
   h+='</div></section>';
   endCache={T:T,title:title,ok:allDone,doneN:doneN,total:total,pct:pct,time:st?hh+':'+(mm<10?"0":"")+mm:"",order:order,score:score,sumScore:sumScore,aw:aw};
   // 3 one table: who did what
-  h+='<section class="cat"><h2>Wer hat was gemacht</h2><div class="scroll"><table class="end-table"><thead><tr><th>Aufgabe</th>';
+  h+='<section class="cat end-only-page"><h2>Wer hat was gemacht</h2><div class="scroll"><table class="end-table"><thead><tr><th>Aufgabe</th>';
   for(i=0;i<N;i++) h+='<th style="--pc:var(--p'+i+')"><span class="pp on">'+esc(initials(i))+'</span><span class="eh-name">'+esc(pname(i))+'</span></th>';
   h+='<th>Gesamt</th></tr></thead><tbody>';
   CATS.forEach(function(c){ if(!c.goals.length) return;
@@ -882,8 +895,8 @@ function renderEnd(T,doneN,pct){
   h+='</tbody></table></div></section>';
   // 4 what is left
   var open=GOALS.filter(function(g){ var t=T[g.id]; return g.check?t.sum<=0:t.sum<g.target-1e-9; });
-  if(open.length) h+='<section class="cat"><h2>Offen geblieben ('+open.length+')</h2><div class="end-open">'+open.map(function(g){ var t=T[g.id]; return '<span>'+esc(g.name)+(g.check?'':' <i>es fehlen '+fmt(Math.max(0,g.target-t.sum))+'</i>')+'</span>'; }).join('')+'</div></section>';
-  h+='<div class="end-actions"><button class="btn primary" id="endImg">Als Bild speichern</button></div>';
+  if(open.length) h+='<section class="cat end-only-page"><h2>Offen geblieben ('+open.length+')</h2><div class="end-open">'+open.map(function(g){ var t=T[g.id]; return '<span>'+esc(g.name)+(g.check?'':' <i>es fehlen '+fmt(Math.max(0,g.target-t.sum))+'</i>')+'</span>'; }).join('')+'</div></section>';
+  h+='<div class="end-actions end-only-page"><button class="btn primary" id="endImg">Als Bild speichern</button></div>';
   $("view-abschluss").innerHTML=h;
 }
 function makePoster(){
@@ -1007,7 +1020,7 @@ function finale(){
     ov.remove(); c.remove(); finStop=null; };
   $("finClose").focus();
 }
-function tvOff(){ if(!S.tv) return; S.tv=false; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} try{ if(wake){wake.release();wake=null;} }catch(e){} renderAll(); }
+function tvOff(){ if(!S.tv) return; S.tv=false; S.tvView=null; try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} try{ if(wake){wake.release();wake=null;} }catch(e){} renderAll(); }
 function ding(soft){
   if(S.mute||!actx||actx.state!=="running") return;
   var t0=actx.currentTime;
@@ -1085,12 +1098,15 @@ function renderNotice(){
   n.textContent=m; n.hidden=!m;
 }
 var TABS=["ziele","tabelle","verlauf","abschluss","optionen"];
+function effTab(){ if(S.tv) return (S.tvView==="end"||(S.tvView==null&&S.fin))?"abschluss":"ziele"; return S.tab; }
 function renderTabs(){
   var endOk=!!(S.fin||S.endPrev);
   if(S.tab==="abschluss"&&!endOk) S.tab="ziele";
   $("tabEnd").hidden=!endOk; $("optBtn").setAttribute("aria-pressed",String(S.tab==="optionen"));
   $("tabs").hidden=S.tab==="optionen"&&!S.tv;
-  var tab=S.tv?"ziele":S.tab;
+  var tab=effTab();
+  document.body.classList.toggle("tvend",!!S.tv&&tab==="abschluss");
+  $("tvSwap").hidden=!S.tv; $("tvSwap").textContent=tab==="abschluss"?"Aufgaben":"Scoreboard";
   TABS.forEach(function(t){$("view-"+t).hidden=tab!==t});
   document.body.classList.toggle("tv",!!S.tv); $("tvExit").hidden=!S.tv;
   Array.prototype.forEach.call($("tabs").children,function(b){b.setAttribute("aria-selected",String(b.dataset.tab===S.tab))});
@@ -1150,6 +1166,10 @@ function flush(){
 }
 function add(g,n){
   if(S.me===null){openProf();return}
+  var G=GBY[g], tt=totals()[g];
+  if(G&&tt&&!G.check){ var room=Math.round((G.target-tt.sum)*10)/10;
+    if(room<=0){ toast(G.name+" ist schon geschafft. Mehr als "+fmt(G.target)+" geht nicht."); return; }
+    if(n>room){ n=room; toast("Nur noch "+fmt(room)+" bis zum Ziel eingetragen."); } }
   pending[g]=(pending[g]||0)+n; render();
   clearTimeout(flushTimer); flushTimer=setTimeout(flush,700);
 }
@@ -1162,6 +1182,7 @@ document.addEventListener("click",function(ev){
     try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){wake=l}).catch(function(){}); }catch(e){}
     renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="tvExit"){ tvOff(); return; }
+  if(b.id==="tvSwap"){ S.tvView=effTab()==="abschluss"?"tasks":"end"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="profBtn"){ openProf(); return; }
   if(b.id==="profCancel"){ $("prof").hidden=true; return; }
   if(d.setme!==undefined){ flush(); S.me=Number(d.setme); ls("challenge24-me",String(S.me)); $("prof").hidden=true; renderWho(); render(); return; }
@@ -1188,7 +1209,10 @@ document.addEventListener("click",function(ev){
   else if(d.edit){ openEdit(d.edit); }
   else if(b.id==="editCancel"){ $("edit").hidden=true; editG=null; }
   else if(b.id==="editOk"){
-    var eg=editG, T2=totals()[eg]; $("edit").hidden=true; editG=null; if(!T2) return;
+    var eg=editG, T2=totals()[eg], G2=GBY[eg], wantSum=0; if(!T2||!G2){ $("edit").hidden=true; editG=null; return; }
+    for(var q3=0;q3<NP();q3++){ var el3=$("editP"+q3), w3=el3?Number(String(el3.value).replace(",",".")):0; if(w3>0) wantSum+=w3; }
+    if(wantSum>G2.target+1e-9){ toast("Zusammen sind das "+fmt(wantSum)+". Mehr als "+fmt(G2.target)+" geht nicht."); return; }
+    $("edit").hidden=true; editG=null;
     var changed=0;
     for(var q2=0;q2<NP();q2++){ var el2=$("editP"+q2); if(!el2) continue;
       var want=Number(String(el2.value).replace(",",".")); if(!(want>=0)) want=0;
