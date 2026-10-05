@@ -518,7 +518,7 @@ function buildGoalInputs(){
 }
 var DEFAULT_NAMES = ["Spieler 1","Spieler 2","Spieler 3","Spieler 4"];
 
-var S = {entries:[], cfg:{names:DEFAULT_NAMES.slice(), goals:{}, startAt:null}, me:null, mode:"loading", canWrite:true, tab:"ziele", gv:"karten", open:null};
+var S = {entries:[], cfg:{names:DEFAULT_NAMES.slice(), goals:{}, startAt:null}, me:null, mode:"loading", canWrite:true, tab:"ziele", gv:"karten", open:null, doneAt:null};
 var pending = {}; // goalId -> amount not yet written (for S.me)
 var flushTimer = null, store = null, toastTimer = null, resetArmed = false, startArmed = false, stopStage = 0, stopTimer = null;
 var $ = function(id){return document.getElementById(id)};
@@ -555,13 +555,13 @@ function renderWho(){
   w.innerHTML=h; w.classList.toggle("need", S.me===null);
 }
 function renderClock(){
-  var st=S.cfg.startAt, left=st?Math.max(0,DAY-(Date.now()-st)):DAY;
+  var st=S.cfg.startAt, stopped=!!st&&S.doneAt!=null, left=st?Math.max(0,DAY-((stopped?S.doneAt:Date.now())-st)):DAY;
   var s=Math.floor(left/1000), hh=Math.floor(s/3600), mm=Math.floor(s%3600/60), ss=s%60;
   function p(n){return (n<10?"0":"")+n}
   $("clock").textContent=p(hh)+":"+p(mm)+":"+p(ss);
-  var cl=!st?"Noch nicht gestartet":(left===0?"Zeit abgelaufen":""); $("clockLabel").textContent=cl; $("clockLabel").hidden=!cl;
+  var cl=!st?"Noch nicht gestartet":(stopped?"Alles geschafft · Uhr angehalten":(left===0?"Zeit abgelaufen":"")); $("clockLabel").textContent=cl; $("clockLabel").hidden=!cl;
   $("startBtn").hidden=!!st || !canAct();
-  var up=!!st&&left===0; if(up!==wasUp){ wasUp=up; if(up) setTimeout(renderAll,0); }
+  var up=!!st&&left===0&&!stopped; if(up!==wasUp){ wasUp=up; if(up) setTimeout(renderAll,0); }
 }
 var THEMES=[
  [/leberk|fleischk/,"leberkas"],[/bier|beer|radler|seidl|krügerl/,"bier"],[/espresso|kaffee|coffee/,"espresso"],
@@ -692,6 +692,8 @@ function render(){
     if(fin&&!finSeen){ finSeen=true; S.tab="abschluss"; }
     if(!fin&&finSeen){ finSeen=false; if(S.tab==="abschluss"&&!S.endPrev) S.tab="ziele"; }
     S.fin=fin;
+    var dAt=allNow?S.entries.reduce(function(m,e){return GBY[e.g]?Math.max(m,e.t):m},0):null;
+    if(dAt!==S.doneAt){ S.doneAt=dAt; renderClock(); }
   }
   renderTabs();
   if(S.tab==="abschluss"&&!S.tv) renderEnd(T,done,pct);
