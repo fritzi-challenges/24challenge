@@ -1,0 +1,23 @@
+Eigene Bilder für die Aufgaben
+==============================
+
+Lege hier PNG-Dateien ab, dann zeigt die Seite sie statt der gezeichneten Symbole.
+
+Der Dateiname richtet sich nach dem Namen der Aufgabe:
+  - alles klein geschrieben
+  - ä -> ae, ö -> oe, ü -> ue, ß -> ss
+  - alles andere (Leerzeichen, Klammern, Punkte, Plus) wird zu einem Bindestrich
+
+Beispiele:
+  CS                  -> cs.png
+  LoL                 -> lol.png
+  Minecraft Hardcore  -> minecraft-hardcore.png
+  GeoGuessr 20.000+   -> geoguessr-20-000.png
+  1000-Teile-Puzzle   -> 1000-teile-puzzle.png
+  Laufen (km)         -> laufen-km.png
+  Liegestütze         -> liegestuetze.png
+
+Den genauen Dateinamen für jede Aufgabe zeigt die Seite im Reiter "Optionen"
+unter der jeweiligen Aufgabe an ("Eigenes Bild: icons/....png").
+
+Am besten quadratische Bilder, etwa 200 x 200 Pixel.

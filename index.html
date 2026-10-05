@@ -116,8 +116,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .grow .bar{grid-column:1/-1;height:8px}
 
 /* task icons */
-.ico{flex:0 0 auto;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;color:var(--ic);background:color-mix(in srgb,var(--ic) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--ic) 45%,var(--line))}
-.ico svg{width:27px;height:27px;display:block}
+.ico{flex:0 0 auto;width:52px;height:52px;overflow:hidden;border-radius:10px;display:grid;place-items:center;color:var(--ic);background:color-mix(in srgb,var(--ic) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--ic) 45%,var(--line))}
+.ico svg{width:31px;height:31px;display:block}
+.ico.pic{background:none;border:0}
+.ico img{width:100%;height:100%;object-fit:cover;display:block}
 .goal-head{align-items:center}
 .goal-head h3{flex:1;min-width:0}
 .goal-head .ico{order:3;margin-left:4px}
@@ -126,17 +128,26 @@ button:disabled{opacity:.45;cursor:not-allowed}
 /* tv mode */
 .tvx{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;z-index:9;opacity:.55}
 .tvx:hover,.tvx:focus-visible{opacity:1}
-body.tv .who,body.tv .tabs,body.tv .seg,body.tv #startBtn,body.tv #gvHint,body.tv #tvBtn{display:none!important}
-body.tv .wrap{max-width:none}
-body.tv .board{position:static;border-bottom:0;padding-top:16px}
-body.tv .clock{font-size:clamp(4rem,13vw,11rem)}
+body.tv .tabs,body.tv .seg,body.tv #startBtn,body.tv #gvHint,body.tv #tvBtn{display:none!important}
+body.tv .wrap{max-width:none;min-height:100vh;min-height:100dvh;padding-inline:clamp(24px,3.5vw,64px);padding-block:clamp(18px,2.5vw,44px)}
+body.tv .board{margin-inline:0;padding-inline:0}
+body.tv .who{margin-inline:0;padding-inline:0;flex-wrap:wrap;overflow:visible;pointer-events:none;gap:10px}
+body.tv .who-label{display:none}
+body.tv .chip,body.tv .chip[aria-pressed="true"]{background:var(--surface);color:var(--fg);border-color:var(--line);box-shadow:none;font-size:clamp(1rem,1.6vw,1.5rem);padding:6px 16px}
+body.tv .chip::before,body.tv .chip[aria-pressed="true"]::before{background:var(--pc);width:16px;height:16px}
+body.tv #view-ziele,body.tv #goals{flex:1}
+body.tv .grow{align-content:center}
+body.tv .board{position:static;border-bottom:0;padding-top:0}
+body.tv .clock{font-size:clamp(3.5rem,9vw,8rem)}
 body.tv .clock-label,body.tv .stat-label{font-size:clamp(.8rem,1.4vw,1.3rem)}
-body.tv .stat .num{font-size:clamp(2rem,5vw,4.5rem)}
+body.tv .stat .num{font-size:clamp(2rem,4vw,3.6rem)}
 body.tv .board-stats{gap:clamp(16px,4vw,56px)}
 body.tv .totalbar{height:14px}
 body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:stretch}
-body.tv h2{font-size:1.5rem}
-body.tv .grow{font-size:1.35rem;padding:12px 16px}
+body.tv h2{font-size:1.3rem}
+body.tv .wrap{gap:14px}
+body.tv #goals{gap:18px}
+body.tv .grow{font-size:1.3rem;padding:8px 16px}
 body.tv .grow .gcount{font-size:1.6rem}
 body.tv .grow .bar{height:16px}
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
@@ -354,7 +365,7 @@ function buildGoalInputs(){
     c.goals.forEach(function(g){
       h+='<div class="gedit"><div class="gfields"><label'+(g.check?' class="wide"':'')+'>Name<input id="goal-'+g.id+'-name" maxlength="28" autocomplete="off"></label>'
         +(g.check?'':'<label>Zielmenge<input id="goal-'+g.id+'-target" type="number" min="1" step="any" inputmode="decimal"></label>')
-        +'<label class="wide">Beschreibung<input id="goal-'+g.id+'-rule" maxlength="80" autocomplete="off" placeholder="optional"></label></div>'
+        +'<label class="wide">Beschreibung<input id="goal-'+g.id+'-rule" maxlength="80" autocomplete="off" placeholder="optional"></label><div class="rule wide" id="goal-'+g.id+'-file"></div></div>'
         +'<button class="btn x" data-rm="'+g.id+'" aria-label="'+esc(g.name)+' entfernen" title="Entfernen">×</button></div>'; }); });
   $("goalInputs").innerHTML=h||'<div class="rule">Keine Aufgaben. Füg unten eine hinzu.</div>';
 }
@@ -432,7 +443,14 @@ var ICONS={
  milk:['#8fa8c4','<path d="M8 3h8l2 4v14H6V7zM6 7h12M9 12h6"/>'],
  def:['#8a958e','<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>']
 };
+var IMG={};
+function slug(n){ return String(n).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40); }
 function ico(g){
+  var sl=slug(g.name);
+  if(sl){
+    if(IMG[sl]===undefined){ IMG[sl]="wait"; var im=new Image(); im.onload=function(){ IMG[sl]=true; render(); }; im.onerror=function(){ IMG[sl]=false; }; im.src="icons/"+sl+".png"; }
+    if(IMG[sl]===true) return '<span class="ico pic"><img src="icons/'+sl+'.png" alt=""></span>';
+  }
   var n=String(g.name).toLowerCase(), k="def";
   for(var i=0;i<THEMES.length;i++) if(THEMES[i][0].test(n)){ k=THEMES[i][1]; break; }
   var d=ICONS[k]||ICONS.def;
@@ -555,7 +573,8 @@ function renderSettings(){
   var sig=GOALS.map(function(g){return g.id+(g.check?"c":"n")}).join(",");
   if(sig!==goalSig){ goalSig=sig; buildGoalInputs(); }
   GOALS.forEach(function(g){ [["name",g.name],["rule",g.rule||""],["target",g.target]].forEach(function(f){
-    var el=$("goal-"+g.id+"-"+f[0]); if(!el) return; el.value=f[1]; el.disabled=locked; }); });
+    var el=$("goal-"+g.id+"-"+f[0]); if(!el) return; el.value=f[1]; el.disabled=locked; });
+    var fe=$("goal-"+g.id+"-file"); if(fe) fe.textContent="Eigenes Bild: icons/"+slug(g.name)+".png"; });
   var csig=CATS.map(function(c){return c.key+":"+c.name+":"+c.goals.length}).join("|");
   if(csig!==catSig){ catSig=csig; var sel=$("newCat"), keep=wantCat||sel.value; wantCat=null;
     sel.innerHTML=CATS.map(function(c){return '<option value="'+c.key+'">'+esc(c.name)+'</option>'}).join(""); if(keep&&CATS.some(function(c){return c.key===keep})) sel.value=keep;
