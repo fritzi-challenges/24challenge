@@ -194,9 +194,11 @@ label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--mut
 input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0;width:100%}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .row label{flex:1 1 200px}
-#goalInputs{display:flex;flex-direction:column;gap:8px}
+#goalInputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px;align-items:start}
+.gbox{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.gbox h3{font-size:1.15rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
 .gcat{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-top:6px}
-.gedit{display:flex;align-items:flex-start;gap:6px;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px}
+.gedit{display:flex;align-items:flex-start;gap:6px;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface)}
 .gfields{flex:1;min-width:0;display:grid;grid-template-columns:2fr 1fr;gap:6px}
 .gfields .wide{grid-column:1/-1}
 .btn.x{padding:8px 12px;color:var(--muted);font-size:1.1rem;line-height:1.2}
@@ -389,12 +391,13 @@ function buildGoalInputs(){
   var h="";
   CATS.forEach(function(c){
     if(!c.goals.length) return;
-    h+='<div class="gcat">'+esc(c.name)+'</div>';
+    h+='<section class="gbox"><h3>'+esc(c.name)+'</h3>';
     c.goals.forEach(function(g){
       h+='<div class="gedit"><div class="gfields"><label'+(g.check?' class="wide"':'')+'>Name<input id="goal-'+g.id+'-name" maxlength="28" autocomplete="off"></label>'
         +(g.check?'':'<label>Zielmenge<input id="goal-'+g.id+'-target" type="number" min="1" step="any" inputmode="decimal"></label>')
         +'<label class="wide">Beschreibung<input id="goal-'+g.id+'-rule" maxlength="80" autocomplete="off" placeholder="optional"></label><div class="rule wide" id="goal-'+g.id+'-file"></div></div>'
-        +'<button class="btn x" data-rm="'+g.id+'" aria-label="'+esc(g.name)+' entfernen" title="Entfernen">×</button></div>'; }); });
+        +'<button class="btn x" data-rm="'+g.id+'" aria-label="'+esc(g.name)+' entfernen" title="Entfernen">×</button></div>'; });
+    h+='</section>'; });
   $("goalInputs").innerHTML=h||'<div class="rule">Keine Aufgaben. Füg unten eine hinzu.</div>';
 }
 var DEFAULT_NAMES = ["Spieler 1","Spieler 2","Spieler 3","Spieler 4"];
