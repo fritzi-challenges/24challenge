@@ -90,13 +90,11 @@ body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
 .goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.goal.done{border:2px solid var(--good);background:color-mix(in srgb,var(--good) 16%,var(--surface))}
-.goal.done h3{color:var(--good)}
-.goal.done:not(.check) h3::before{content:"✓ "}
+.goal.done{border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 6%,var(--surface))}
+.goal.done:not(.check) h3::before{content:"✓ ";color:var(--good)}
 .goal.done .count b{color:var(--good)}
-.grow.done{background:color-mix(in srgb,var(--good) 16%,var(--surface));border-color:var(--good)}
-.grow.done .gname{color:var(--good)}
-.grow.done:not(.chk) .gname::before{content:"✓ "}
+.grow.done{background:color-mix(in srgb,var(--good) 6%,var(--surface));border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.grow.done:not(.chk) .gname::before{content:"✓ ";color:var(--good)}
 .goal-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .count{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
 .count b{font-family:var(--display);font-size:1.9rem;font-weight:700;line-height:.9;font-variant-numeric:tabular-nums}
