@@ -41,7 +41,9 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
 /* scoreboard strip */
 .board{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:8px 16px 0;display:flex;flex-direction:column;gap:8px}
-.board-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.board-top{display:flex;align-items:flex-end;gap:12px}
+.board-stats{margin-left:auto}
+.tvb{padding:3px 9px;font-size:.75rem;letter-spacing:.06em;color:var(--muted);align-self:flex-start}
 .clock{font-size:clamp(2.2rem,9.5vw,3.4rem);font-weight:700;line-height:.9}
 .clock-label,.stat-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap}
 .board-stats{display:flex;gap:14px;text-align:right}
@@ -65,7 +67,9 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
 /* goals */
 #goals{display:grid;gap:22px}
-@media (min-width:980px){#goals{grid-template-columns:repeat(3,1fr);align-items:start}}
+@media (min-width:980px){#goals{grid-template-columns:repeat(3,1fr);align-items:stretch}}
+.cat>.grid{flex:1;grid-auto-rows:1fr}
+.goal .btns{margin-top:auto}
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
 .goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -111,6 +115,40 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .grow.done .gcount,.grow.done .gcount b{color:var(--good)}
 .grow .bar{grid-column:1/-1;height:8px}
 
+/* themed cards: each theme is one fixed look, so it sets every colour it uses */
+.goal[data-th]:not(.done){background:var(--tbg);color:var(--tfg);border-color:var(--tline,transparent)}
+.goal[data-th]:not(.done) .rule,.goal[data-th]:not(.done) .meta,.goal[data-th]:not(.done) .count span{color:var(--tmuted)}
+.goal[data-th]:not(.done) .bar{background:var(--ttrack)}
+.goal[data-th]:not(.done) .soll{background:var(--tfg)}
+.goal[data-th]:not(.done) .state{color:var(--tfg)}
+.goal[data-th]:not(.done) .btns button{background:var(--tbtn);color:var(--tfg);border-color:var(--tline,transparent)}
+.goal[data-th]:not(.done) .box{background:var(--tbtn);border-color:var(--tfg)}
+.goal[data-th]{--tfg:#fff;--tmuted:rgba(255,255,255,.82);--ttrack:rgba(0,0,0,.32);--tbtn:rgba(0,0,0,.3);--tline:rgba(255,255,255,.28)}
+.goal[data-th="leberkas"]{--tbg:radial-gradient(circle at 18% 30%,rgba(255,255,255,.4) 0 2px,transparent 3px) 0 0/46px 38px,radial-gradient(circle at 70% 75%,rgba(160,60,50,.35) 0 2px,transparent 3px) 0 0/58px 44px,#eaa79d;--tfg:#3a120b;--tmuted:rgba(58,18,11,.78);--ttrack:rgba(58,18,11,.22);--tbtn:rgba(255,255,255,.45);--tline:#8a4b22}
+.goal[data-th="leberkas"]:not(.done){border-width:7px 3px;border-color:#8a4b22;box-shadow:inset 0 0 0 2px #c07a3a}
+.goal[data-th="bier"]{--tbg:radial-gradient(circle at 20% 70%,rgba(255,255,255,.5) 0 2px,transparent 3px) 0 0/40px 52px,radial-gradient(circle at 75% 40%,rgba(255,255,255,.4) 0 1.5px,transparent 2.5px) 0 0/34px 46px,linear-gradient(180deg,#fffaf0 0 20px,#f6dc8c 20px 25px,#eba41c 25px,#c9790a 100%);--tfg:#2a1600;--tmuted:rgba(42,22,0,.8);--ttrack:rgba(42,22,0,.25);--tbtn:rgba(255,255,255,.4);--tline:rgba(42,22,0,.3)}
+.goal[data-th="espresso"]{--tbg:linear-gradient(180deg,#d2a467 0 9px,#9a6731 9px 15px,#2b1a10 15px 100%);--tfg:#f6e8d4;--tmuted:rgba(246,232,212,.8);--tbtn:rgba(255,255,255,.12);--ttrack:rgba(255,255,255,.16);--tline:rgba(210,164,103,.45)}
+.goal[data-th="cig"]{--tbg:radial-gradient(circle at 30% 40%,rgba(120,60,10,.35) 0 1.5px,transparent 2.5px) 0 0/14px 12px no-repeat,linear-gradient(90deg,#d98a2b 0 20%,#b96f18 20% 21.5%,#f7f4ee 21.5% 93%,#9a9a9a 93% 97%,#e2562a 97% 100%);--tfg:#262626;--tmuted:rgba(38,38,38,.78);--ttrack:rgba(0,0,0,.18);--tbtn:rgba(0,0,0,.08);--tline:rgba(0,0,0,.25)}
+.goal[data-th="snus"]{--tbg:radial-gradient(circle at 100% 50%,#1a3350 0 40px,rgba(201,211,221,.3) 40px 42px,#14283f 42px 52px,rgba(201,211,221,.3) 52px 53px,transparent 54px),#0f1c2e;--tfg:#eaf0f6}
+.goal[data-th="track"]{--tbg:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.38) 44px 46px),#b6452e}
+.goal[data-th="mat"]{--tbg:repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 7px,transparent 7px 14px),#25527a}
+.goal[data-th="bar"]{--tbg:linear-gradient(180deg,#8d969e 0,#eef1f3 5px,#7d868e 12px,#1d2125 13px,#2a2f34 100%);--tfg:#f2f4f5;--tbtn:rgba(255,255,255,.1);--ttrack:rgba(255,255,255,.16)}
+.goal[data-th="dart"]{--tbg:repeating-linear-gradient(180deg,#c8102e 0 16px,#1c7c3c 16px 32px) 0 0/7px 100% no-repeat,repeating-linear-gradient(180deg,#f3ead2 0 16px,#111 16px 32px) 7px 0/7px 100% no-repeat,#15171a;--tfg:#f3ead2;--tbtn:rgba(255,255,255,.1);--ttrack:rgba(255,255,255,.16)}
+.goal[data-th="mc"]{--tbg:linear-gradient(90deg,rgba(0,0,0,.1) 50%,transparent 50%) 0 0/16px 16px,linear-gradient(0deg,rgba(0,0,0,.08) 50%,transparent 50%) 0 0/16px 16px,linear-gradient(180deg,#5fa03b 0 16px,#4a7d2e 16px 22px,#7a5536 22px 100%)}
+.goal[data-th="cs"]{--tbg:linear-gradient(135deg,#de9b35 0 12px,transparent 12px),linear-gradient(315deg,#de9b35 0 12px,transparent 12px),#1b2026;--tline:#de9b35;--tbtn:rgba(255,255,255,.1);--ttrack:rgba(255,255,255,.16)}
+.goal[data-th="lol"]{--tbg:linear-gradient(160deg,#0a1428,#0a2a4a);--tfg:#f0e6d2;--tline:#c8aa6e;--tbtn:rgba(200,170,110,.18);--ttrack:rgba(255,255,255,.14)}
+.goal[data-th="lol"]:not(.done){border-width:2px}
+.goal[data-th="dart"]:not(.done){padding-left:24px}
+.goal[data-th="geo"]{--tbg:linear-gradient(0deg,rgba(0,0,0,.07) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(0,0,0,.07) 1px,transparent 1px) 0 0/26px 26px,radial-gradient(circle at 92% 20%,#8ecbec 0 46px,transparent 47px),radial-gradient(circle at 12% 110%,#8ecbec 0 40px,transparent 41px),#d9eac4;--tfg:#15301a;--tmuted:rgba(21,48,26,.8);--ttrack:rgba(21,48,26,.2);--tbtn:rgba(255,255,255,.5);--tline:rgba(21,48,26,.3)}
+.goal[data-th="puzzle"]{--tbg:radial-gradient(circle at 50% 0,rgba(255,255,255,.2) 0 11px,transparent 12px) 0 0/84px 64px,radial-gradient(circle at 0 50%,rgba(0,0,0,.2) 0 11px,transparent 12px) 0 0/84px 64px,linear-gradient(0deg,rgba(255,255,255,.22) 1px,transparent 1px) 0 0/84px 64px,linear-gradient(90deg,rgba(255,255,255,.22) 1px,transparent 1px) 0 0/84px 64px,#3a6db3}
+.goal[data-th="escape"]{--tbg:radial-gradient(circle at calc(100% - 26px) 42%,#e0b450 0 8px,transparent 9px),linear-gradient(#e0b450,#e0b450) calc(100% - 23px) 62%/7px 18px no-repeat,linear-gradient(90deg,#5a3a22,#73492b);--tfg:#f7ebdc;--tline:#3b2616}
+.goal[data-th="pong"]{--tbg:linear-gradient(90deg,transparent calc(50% - 1.5px),rgba(255,255,255,.85) calc(50% - 1.5px) calc(50% + 1.5px),transparent calc(50% + 1.5px)),#1d6b4a;--tline:#fff}
+.goal[data-th="pong"]:not(.done){border-width:2px}
+.goal[data-th="fish"]{--tbg:repeating-radial-gradient(circle at 50% -30px,transparent 0 26px,rgba(255,255,255,.14) 26px 28px),linear-gradient(180deg,#2b82bb,#124f78)}
+.goal[data-th="road"]{--tbg:linear-gradient(90deg,transparent 0 12px,#f2c230 12px 34px,transparent 34px 46px) 0 50%/46px 3px repeat-x,#34383d}
+.goal[data-th="fry"]{--tbg:radial-gradient(circle at 30% 30%,rgba(255,255,255,.25) 0 2px,transparent 3px) 0 0/22px 20px,#c98a2e;--tfg:#2e1a00;--tmuted:rgba(46,26,0,.8);--ttrack:rgba(46,26,0,.22);--tbtn:rgba(255,255,255,.4);--tline:rgba(46,26,0,.3)}
+.goal[data-th="milk"]{--tbg:linear-gradient(180deg,#fff,#eef3f8);--tfg:#1c2a3a;--tmuted:rgba(28,42,58,.75);--ttrack:rgba(28,42,58,.15);--tbtn:rgba(28,42,58,.07);--tline:#b8c7d8}
+
 /* tv mode */
 .tvx{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;z-index:9;opacity:.55}
 .tvx:hover,.tvx:focus-visible{opacity:1}
@@ -122,7 +160,7 @@ body.tv .clock-label,body.tv .stat-label{font-size:clamp(.8rem,1.4vw,1.3rem)}
 body.tv .stat .num{font-size:clamp(2rem,5vw,4.5rem)}
 body.tv .board-stats{gap:clamp(16px,4vw,56px)}
 body.tv .totalbar{height:14px}
-body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:start}
+body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:stretch}
 body.tv h2{font-size:1.5rem}
 body.tv .grow{font-size:1.35rem;padding:12px 16px}
 body.tv .grow .gcount{font-size:1.6rem}
@@ -178,6 +216,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
         <div class="stat"><div class="stat-label">Gesamt</div><div class="num" id="totalPct">0 %</div></div>
         <div class="stat"><div class="stat-label">Fertig</div><div class="num" id="doneCount">0/13</div></div>
       </div>
+      <button class="btn tvb" id="tvBtn" title="Fernseher-Modus" aria-label="Fernseher-Modus">TV</button>
     </div>
     <div class="totalbar" aria-hidden="true"><i id="totalFill" style="width:0%"></i></div>
     <div class="who" id="who"></div>
@@ -199,7 +238,6 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
       <button data-gv="liste">Überblick</button>
       <button data-gv="ich">Mein Anteil</button>
     </div>
-    <button class="btn" id="tvBtn">Fernseher-Modus</button>
     <div class="rule" id="gvHint" hidden>Wähl oben einen Namen, dann siehst du hier deinen Anteil.</div>
     <main id="goals"></main>
   </div>
@@ -389,18 +427,26 @@ function renderClock(){
   $("clockLabel").textContent=!st?"Noch nicht gestartet":(left===0?"Zeit abgelaufen":"Restzeit");
   $("startBtn").hidden=!!st || !canAct();
 }
+var THEMES=[
+ [/leberk|fleischk/,"leberkas"],[/bier|beer|radler|seidl|krügerl/,"bier"],[/espresso|kaffee|coffee/,"espresso"],
+ [/zigarett|tschick|kippe/,"cig"],[/snus/,"snus"],[/lauf|joggen|rennen|\bkm\b/,"track"],[/liegest|push/,"mat"],
+ [/klimmz|pull/,"bar"],[/dart|bullseye/,"dart"],[/minecraft/,"mc"],[/^cs\b|cs2|counter/,"cs"],[/^lol\b|league/,"lol"],
+ [/geoguess/,"geo"],[/puzzle/,"puzzle"],[/escape/,"escape"],[/ping ?pong|tischtennis/,"pong"],[/fisch|angel/,"fish"],
+ [/rad|bike|fahrrad/,"road"],[/nugget|schnitzel|pommes/,"fry"],[/milch/,"milk"]
+];
+function th(g){ var n=String(g.name).toLowerCase(); for(var i=0;i<THEMES.length;i++) if(THEMES[i][0].test(n)) return ' data-th="'+THEMES[i][1]+'"'; return ""; }
 function goalCard(g,t,frac){
   var dis=canAct()?"":" disabled", done, h;
   if(g.check){
     var e=t.last; done=t.sum>0;
     var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"";
-    h='<article class="goal check'+(done?" done":"")+'"><button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+' abhaken" '+(done?'data-uncheck':'data-check')+'="'+g.id+'"'+(done?(canAct()?"":" disabled"):dis)+'>'+(done?'✓':'')+'</button>';
+    h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'><button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+' abhaken" '+(done?'data-uncheck':'data-check')+'="'+g.id+'"'+(done?(canAct()?"":" disabled"):dis)+'>'+(done?'✓':'')+'</button>';
     h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(done&&e?'<div class="rule">'+esc(pname(e.p))+', '+tm+' Uhr</div>':'')+'</div>';
     return h+'</article>';
   }
   done=t.sum>=g.target-1e-9; var rest=Math.max(0,g.target-t.sum), prog=Math.min(1,t.sum/g.target);
   var st=done?'<span class="state ok">Fertig</span>':(S.cfg.startAt&&prog+0.03<frac?'<span class="state late">Hinten</span>':'');
-  h='<article class="goal'+(done?" done":"")+'"><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
+  h='<article class="goal'+(done?" done":"")+'"'+th(g)+'><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar">';
   for(var i=0;i<NP();i++){ if(t.by[i]>0) h+='<i style="width:'+Math.min(100,t.by[i]/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+i+')" title="'+esc(pname(i))+': '+fmt(t.by[i])+'"></i>'; }
   h+='</div>'+(S.cfg.startAt&&!done?'<span class="soll" style="left:'+(frac*100)+'%" title="Soll laut Uhr"></span>':'')+'</div>';
@@ -423,7 +469,7 @@ function goalRow(g,t){
 function goalMine(g,t,frac){
   if(g.check) return goalCard(g,t,frac);
   var dis=canAct()?"":" disabled", mine=t.by[S.me], done=t.sum>=g.target-1e-9, pct=Math.round(mine/g.target*100), tpct=Math.round(Math.min(1,t.sum/g.target)*100);
-  var h='<article class="goal'+(done?" done":"")+'"><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+pct+' %</b></div></div>';
+  var h='<article class="goal'+(done?" done":"")+'"'+th(g)+'><div class="goal-head"><h3>'+esc(g.name)+'</h3><div class="count"><b>'+pct+' %</b></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar"><i style="width:'+Math.min(100,mine/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+S.me+')"></i></div></div>';
   h+='<div class="meta"><span>'+fmt(mine)+' von '+fmt(g.target)+' von dir · Team '+tpct+' %</span>'+(done?'<span class="state ok">Fertig</span>':'')+'</div><div class="btns">';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
