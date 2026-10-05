@@ -776,10 +776,10 @@ function renderOverview(T,frac){
       var done=t.sum>=g.target-1e-9, soll=g.target*frac, share=g.target/N, rest=Math.max(0,g.target-t.sum), diff=t.sum-soll;
       h+='<article class="ov'+(done?' done':'')+'"><div class="ov-head">'+ico(g)+'<div class="ov-title"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'</div><div class="ov-big"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'<small>'+pc(t.sum,g.target)+' %</small></div></div>';
       h+='<div class="bar">'+segs(g,t)+'</div>';
-      h+='<div class="ov-facts"><span><i>Ziel</i><b>'+fmt(g.target)+'</b></span><span><i>Geschafft</i><b>'+fmt(t.sum)+'</b></span><span><i>Offen</i><b>'+fmt(rest)+'</b></span><span><i>Soll bis jetzt</i><b>'+(started?fmt(soll):'–')+'</b></span><span><i>Vorsprung</i><b class="'+(started?(diff>=0?'pos':'neg'):'')+'">'+(started?(diff>=0?'+':'−')+fmt(Math.abs(diff)):'–')+'</b></span><span><i>Pro Kopf</i><b>'+fmt(share)+'</b></span></div>';
-      h+='<div class="scroll"><table class="ov-t"><thead><tr><th>Spieler</th><th>Gemacht</th><th>Anteil</th><th>Erfüllt</th><th>Soll bis jetzt</th><th>Noch offen</th></tr></thead><tbody>';
+      h+='<div class="ov-facts"><span><i>Stand</i><b>'+fmt(t.sum)+' / '+fmt(g.target)+'</b></span><span><i>Offen</i><b>'+fmt(rest)+'</b></span><span><i>Soll bis jetzt</i><b>'+(started?fmt(soll):'–')+'</b></span><span><i>Vorsprung</i><b class="'+(started?(diff>=0?'pos':'neg'):'')+'">'+(started?(diff>=0?'+':'−')+fmt(Math.abs(diff)):'–')+'</b></span><span><i>Pro Kopf</i><b>'+fmt(share)+'</b></span></div>';
+      h+='<div class="scroll"><table class="ov-t"><thead><tr><th>Spieler</th><th>Stand</th><th>Erfüllt</th><th>Soll bis jetzt</th><th>Noch offen</th></tr></thead><tbody>';
       for(k=0;k<N;k++){ var v=t.by[k], ps=share*frac;
-        h+='<tr><td><span class="ew"><span class="pp on" style="--pc:var(--p'+k+')">'+esc(initials(k))+'</span>'+esc(pname(k))+'</span></td><td><b>'+fmt(v)+'</b></td><td>'+fmt(share)+'</td><td>'+pc(v,share)+' %</td><td>'+(started?fmt(ps):'–')+'</td><td>'+fmt(Math.max(0,share-v))+'</td></tr>'; }
+        h+='<tr><td><span class="ew"><span class="pp on" style="--pc:var(--p'+k+')">'+esc(initials(k))+'</span>'+esc(pname(k))+'</span></td><td><b>'+fmt(v)+'</b> / '+fmt(share)+'</td><td>'+pc(v,share)+' %</td><td>'+(started?fmt(ps):'–')+'</td><td>'+fmt(Math.max(0,share-v))+'</td></tr>'; }
       h+='</tbody></table></div></article>'; });
     h+='</div></section>'; });
   $("overview").innerHTML=h||'<div class="empty">Keine Aufgaben vorhanden.</div>';
