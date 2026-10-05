@@ -148,6 +148,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .pdot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pc);margin-right:5px;vertical-align:middle}
 
 /* picker window */
+#view-optionen{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+#view-optionen::-webkit-scrollbar{width:8px}
+#view-optionen::-webkit-scrollbar-track{background:transparent;margin-block:12px}
+#view-optionen::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+#view-optionen::-webkit-scrollbar-button{display:none}
 #optShade{position:fixed;inset:0;z-index:19;background:rgba(4,8,14,.66)}
 #view-optionen{position:fixed;z-index:20;top:max(12px,4vh);bottom:max(12px,4vh);left:0;right:0;margin-inline:auto;width:min(920px,calc(100% - 20px));overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 18px 18px;box-shadow:0 18px 60px rgba(0,0,0,.5)}
 #view-optionen .opt-head{position:sticky;top:-16px;z-index:2;background:var(--bg);margin:-16px -18px 0;padding:14px 18px 10px;display:flex;flex-wrap:nowrap;align-items:center;gap:10px}
