@@ -31,7 +31,7 @@
 html{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.4}
-.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:0 48px;display:flex;flex-direction:column;gap:16px}
+.wrap{max-width:1560px;margin:0 auto;padding-inline:16px;padding-block:0 48px;display:flex;flex-direction:column;gap:16px}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:.01em}
 h2{font-size:1.15rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 h3{font-size:1.25rem;font-weight:600;line-height:1.1}
@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 
 /* goals */
 #goals{display:grid;gap:22px}
-@media (min-width:980px){#goals{grid-template-columns:repeat(3,1fr);align-items:stretch}}
+@media (min-width:980px){#goals{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:stretch}}
 .cat>.grid{flex:1;grid-auto-rows:1fr}
 .goal .btns{margin-top:auto}
 .cat{display:flex;flex-direction:column;gap:10px}
@@ -109,7 +109,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .grid.rows{overflow:hidden;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .grow{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:baseline;min-width:0}
 .grow:last-child{border-bottom:0}
-.grow .gname{font-weight:600;min-width:0}
+.grow .gname{font-weight:600;min-width:0;overflow-wrap:anywhere;hyphens:auto}
 .grow .gcount{color:var(--muted);white-space:nowrap;font-size:1.15rem}
 .grow .gcount b{color:var(--fg);font-weight:700}
 .grow.done .gcount,.grow.done .gcount b{color:var(--good)}
@@ -123,7 +123,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ico.pic{background:none;border:0}
 .ico img{width:100%;height:100%;object-fit:cover;display:block}
 .goal-head{align-items:center}
-.goal-head h3{flex:1;min-width:0}
+.goal-head h3{flex:1;min-width:0;overflow-wrap:break-word;hyphens:auto}
 .goal-head .ico{order:3;margin-left:4px}
 .check-text{flex:1}
 
@@ -145,12 +145,13 @@ body.tv .clock-label,body.tv .stat-label{font-size:clamp(.8rem,1.4vw,1.3rem)}
 body.tv .stat .num{font-size:clamp(2rem,4vw,3.6rem)}
 body.tv .board-stats{gap:clamp(16px,4vw,56px)}
 body.tv .totalbar{height:14px}
-body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));align-items:stretch}
+body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));align-items:stretch}
 body.tv h2{font-size:1.3rem}
 body.tv .wrap{gap:14px}
 body.tv #goals{gap:18px}
-body.tv .grow{font-size:1.3rem;padding:8px 16px}
-body.tv .grow .gcount{font-size:1.6rem}
+body.tv .grow{font-size:clamp(1rem,1.45vw,1.35rem);padding:5px 16px}
+body.tv .grow.chk .gcount{font-size:clamp(.9rem,1.2vw,1.15rem)}
+body.tv .grow .gcount{font-size:clamp(1.1rem,1.7vw,1.6rem)}
 body.tv .grow .bar{height:16px}
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
 
@@ -313,8 +314,13 @@ var BASE = [
   {id:"minecraft", name:"Minecraft Hardcore", check:true, rule:"Enderdrache besiegen, keiner stirbt."},
   {id:"cs", name:"CS", check:true, rule:"Ein Match gewinnen."},
   {id:"lol", name:"LoL", check:true, rule:"Ein Game gewinnen."},
-  {id:"geoguessr", name:"GeoGuessr 20.000+", check:true, rule:"Eine Runde mit 20.000 Punkten oder mehr."},
-  {id:"puzzle", name:"1000-Teile-Puzzle", check:true, rule:"Letztes Teil gelegt."}
+  {id:"geoguessr", name:"GeoGuessr 20.000+", check:true, rule:"Eine Runde mit 20.000 Punkten oder mehr."}
+ ]},
+ {name:"Geschick", goals:[
+  {id:"pingpong", name:"9er Pingpong", check:true},
+  {id:"escaperoom", name:"Escaperoom", check:true},
+  {id:"puzzle", name:"1000-Teile-Puzzle", check:true, rule:"Letztes Teil gelegt."},
+  {id:"fische", name:"Fische fangen", target:2, unit:"Fische", steps:[1]}
  ]}
 ];
 var CATS = [], GOALS = [], GBY = {}, goalSig = null, catSig = null, wantCat = null;
