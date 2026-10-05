@@ -90,10 +90,12 @@ body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
 .cat{display:flex;flex-direction:column;gap:10px}
 .grid{display:grid;gap:8px}
 .goal{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.goal.done{border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 6%,var(--surface))}
+.goal.done{border-color:var(--good);background:color-mix(in srgb,var(--good) 11%,var(--surface))}
+.goal.done h3{color:color-mix(in srgb,var(--good) 55%,var(--fg))}
 .goal.done:not(.check) h3::before{content:"✓ ";color:var(--good)}
 .goal.done .count b{color:var(--good)}
-.grow.done{background:color-mix(in srgb,var(--good) 6%,var(--surface));border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.grow.done{background:color-mix(in srgb,var(--good) 11%,var(--surface));border-color:var(--good)}
+.grow.done .gname{color:color-mix(in srgb,var(--good) 55%,var(--fg))}
 .grow.done:not(.chk) .gname::before{content:"✓ ";color:var(--good)}
 .goal-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .count{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
@@ -148,6 +150,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .pick-list button .pp{min-width:30px;height:30px}
 .pick-list button[aria-checked="true"]{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 22%,var(--surface))}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.edit-row{flex-direction:row;align-items:center;gap:10px;font-size:1.05rem;color:var(--fg);font-weight:600}
+.edit-row .pp{min-width:30px;height:30px}
+.edit-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edit-row input{width:110px;text-align:right;font-size:1.1rem;font-variant-numeric:tabular-nums}
 .btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 
 /* task icons */
@@ -395,6 +401,19 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
     </div>
   </section>
 </div>
+<div class="modal" id="edit" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div>
+      <h3 id="editTitle"></h3>
+      <div class="rule" id="editSub"></div>
+    </div>
+    <div class="pick-list" id="editList"></div>
+    <div class="modal-actions">
+      <button class="btn" id="editCancel">Abbrechen</button>
+      <button class="btn primary" id="editOk">Speichern</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="prof" hidden>
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="profTitle">
     <div>
@@ -633,7 +652,7 @@ function goalCard(g,t,frac,ro){
   h+='</div>'+'</div>';
   h+=(done||st?'<div class="meta"><span>'+(done?"Ziel erreicht":"")+'</span>'+st+'</div>':'')+'<div class="btns"'+(S.open===g.id?'':' hidden')+'>';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
-  h+='<button class="undo" data-undo="'+g.id+'" title="Meinen letzten Eintrag hier zurücknehmen" aria-label="Letzten Eintrag bei '+esc(g.name)+' zurücknehmen"'+dis+'>↶</button></div></article>';
+  h+='<button class="undo" data-edit="'+g.id+'" title="Genaue Werte pro Spieler eingeben" aria-label="Genaue Werte bei '+esc(g.name)+' eingeben"'+dis+'>✎</button></div></article>';
   return h;
 }
 function segs(g,t){
@@ -678,7 +697,7 @@ function render(){
   // log
   var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,40), lh="";
   es.forEach(function(e){var g=GBY[e.g]; if(!g) return;
-    lh+='<li><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>'+esc(pname(e.p))+': '+(g.check?esc(g.name)+' abgehakt':'+'+fmt(e.n)+' '+esc(g.name))+'</span>'+(canAct()?'<button data-del="'+esc(e.id)+'">Löschen</button>':'')+'</li>';});
+    lh+='<li><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>'+esc(pname(e.p))+': '+(g.check?esc(g.name)+' abgehakt':(e.n<0?'−'+fmt(-e.n):'+'+fmt(e.n))+' '+esc(g.name))+'</span>'+(canAct()?'<button data-del="'+esc(e.id)+'">Löschen</button>':'')+'</li>';});
   $("log").innerHTML=lh||'<li class="empty">Noch nichts eingetragen. Tipp eine Aufgabe an und dann auf Plus.</li>';
   renderClock();
   if(S.mode!=="loading"){
@@ -738,6 +757,16 @@ function openProf(){
   for(var i=0;i<NP();i++) h+='<button style="--pc:var(--p'+i+')" data-setme="'+i+'" role="radio" aria-checked="'+(S.me===i)+'"><span class="pp on">'+esc(initials(i))+'</span><span>'+esc(pname(i))+'</span><b>'+(S.me===i?'✓':'')+'</b></button>';
   $("profList").innerHTML=h; $("prof").hidden=false;
   var f=$("profList").querySelector('[aria-checked="true"]')||$("profList").querySelector("button"); if(f) f.focus();
+}
+var editG=null;
+function openEdit(gid){
+  var g=GBY[gid]; if(!g||g.check||!canAct()) return;
+  flush();
+  var t=totals()[gid], h="";
+  for(var i=0;i<NP();i++) h+='<label class="edit-row" style="--pc:var(--p'+i+')"><span class="pp on">'+esc(initials(i))+'</span><span class="edit-name">'+esc(pname(i))+'</span><input id="editP'+i+'" type="number" min="0" step="any" inputmode="decimal" value="'+(Math.round(t.by[i]*10)/10)+'"></label>';
+  editG=gid; $("editTitle").textContent=g.name; $("editSub").textContent="Aktuell "+fmt(t.sum)+" von "+fmt(g.target)+". Trag für jeden Spieler den richtigen Stand ein.";
+  $("editList").innerHTML=h; $("edit").hidden=false;
+  var f=$("editP"+(S.me===null?0:S.me)); if(f){ f.focus(); f.select(); }
 }
 var pickG=null, pickSel=[];
 function renderPick(){
@@ -823,8 +852,8 @@ document.addEventListener("pointerdown",function(){
 },{passive:true});
 document.addEventListener("keydown",function(e){
   if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.matches&&e.target.matches("[data-card]")){ e.preventDefault(); var id=e.target.dataset.card; S.open=S.open===id?null:id; render(); var again=document.querySelector('[data-card="'+id+'"]'); if(again) again.focus(); return; }
-  if(e.key==="Escape"){ if(!$("prof").hidden) $("prof").hidden=true; else if(!$("pick").hidden) closePick(); else tvOff(); } });
-document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); if(e.target&&e.target.id==="prof") $("prof").hidden=true; });
+  if(e.key==="Escape"){ if(!$("edit").hidden){ $("edit").hidden=true; editG=null; } else if(!$("prof").hidden) $("prof").hidden=true; else if(!$("pick").hidden) closePick(); else tvOff(); } });
+document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); if(e.target&&e.target.id==="prof") $("prof").hidden=true; if(e.target&&e.target.id==="edit"){ $("edit").hidden=true; editG=null; } });
 function renderSettings(){
   if($("settings").contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return;
   if(nameCount!==NP()){ nameCount=NP(); var nh="";
@@ -958,6 +987,17 @@ document.addEventListener("click",function(ev){
     store.del(mine.id).then(function(){toast("−"+fmt(mine.n)+" "+GBY[d.undo].name+" zurückgenommen")}).catch(wfail);
   }
   else if(d.pick){ openPick(d.pick); }
+  else if(d.edit){ openEdit(d.edit); }
+  else if(b.id==="editCancel"){ $("edit").hidden=true; editG=null; }
+  else if(b.id==="editOk"){
+    var eg=editG, T2=totals()[eg]; $("edit").hidden=true; editG=null; if(!T2) return;
+    var changed=0;
+    for(var q2=0;q2<NP();q2++){ var el2=$("editP"+q2); if(!el2) continue;
+      var want=Number(String(el2.value).replace(",",".")); if(!(want>=0)) want=0;
+      var diff=Math.round((want-T2.by[q2])*10)/10;
+      if(diff){ changed++; store.add({g:eg,p:q2,n:diff,t:Date.now()+q2}).catch(wfail); } }
+    toast(changed?"Werte gespeichert":"Nichts geändert");
+  }
   else if(d.pp!==undefined){ pickSel[Number(d.pp)]=!pickSel[Number(d.pp)]; renderPick(); }
   else if(b.id==="pickCancel"){ closePick(); }
   else if(b.id==="pickOk"){
