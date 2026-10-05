@@ -117,6 +117,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .grow .ico{grid-row:1/span 2;align-self:center;width:46px;height:46px;margin-right:4px}
 .grow.chk{align-items:center}
 
+/* who did a tick-off task */
+.pwho{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pp{font:inherit;font-size:.76rem;font-weight:600;line-height:1.2;padding:4px 8px;border-radius:999px;border:1.5px solid color-mix(in srgb,var(--pc) 55%,var(--line));background:transparent;color:var(--fg);display:inline-flex;align-items:center;gap:5px}
+.pp::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pc)}
+.pp[aria-pressed="true"],.pp.on{background:var(--pc);border-color:var(--pc);color:var(--bg)}
+.pp[aria-pressed="true"]::before,.pp.on::before{background:var(--bg)}
+.pdot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pc);margin-right:5px;vertical-align:middle}
+
 /* task icons */
 .ico{flex:0 0 auto;width:52px;height:52px;overflow:hidden;border-radius:10px;display:grid;place-items:center;color:var(--ic);background:color-mix(in srgb,var(--ic) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--ic) 45%,var(--line))}
 .ico svg{width:31px;height:31px;display:block}
@@ -490,13 +498,17 @@ function ico(g){
   var d=ICONS[k]||ICONS.def;
   return '<span class="ico" style="--ic:'+d[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d[1]+'</svg></span>';
 }
-function goalCard(g,t,frac){
+function goalCard(g,t,frac,ro){
   var dis=canAct()?"":" disabled", done, h;
   if(g.check){
     var e=t.last; done=t.sum>0;
-    var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"";
-    h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'><button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+' abhaken" '+(done?'data-uncheck':'data-check')+'="'+g.id+'"'+(done?(canAct()?"":" disabled"):dis)+'>'+(done?'✓':'')+'</button>';
-    h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(done&&e?'<div class="rule">'+esc(pname(e.p))+', '+tm+' Uhr</div>':'')+'</div>';
+    var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"", who="";
+    for(var w=0;w<NP();w++){ var on=t.by[w]>0;
+      who+=ro?(on?'<span class="pp on" style="--pc:var(--p'+w+')">'+esc(pname(w))+'</span>':'')
+             :'<button class="pp" style="--pc:var(--p'+w+')" data-who="'+g.id+'" data-p="'+w+'" aria-pressed="'+on+'"'+(canAct()?"":" disabled")+'>'+esc(pname(w))+'</button>'; }
+    h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'>'+(ro?'<span class="box'+(done?' on':'')+'" aria-hidden="true">'+(done?'✓':'')+'</span>'
+      :'<button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+' abhaken" '+(done?'data-uncheck':'data-check')+'="'+g.id+'"'+dis+'>'+(done?'✓':'')+'</button>');
+    h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(who?'<div class="pwho">'+who+'</div>':'')+(done&&e?'<div class="rule">Abgehakt um '+tm+' Uhr</div>':'')+'</div>';
     return h+ico(g)+'</article>';
   }
   done=t.sum>=g.target-1e-9; var rest=Math.max(0,g.target-t.sum), prog=Math.min(1,t.sum/g.target);
@@ -517,12 +529,12 @@ function segs(g,t){
 }
 function goalRow(g,t){
   if(g.check){ var e=t.last, d=t.sum>0;
-    return '<article class="grow chk'+(d?" done":"")+'">'+ico(g)+'<span class="gname">'+esc(g.name)+'</span><span class="gcount">'+(d&&e?esc(pname(e.p))+' ':'')+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
+    return '<article class="grow chk'+(d?" done":"")+'">'+ico(g)+'<span class="gname">'+esc(g.name)+'</span><span class="gcount">'+t.by.map(function(v,i){return v>0?'<i class="pdot" style="--pc:var(--p'+i+')" title="'+esc(pname(i))+'"></i>':''}).join("")+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
   var done=t.sum>=g.target-1e-9;
   return '<article class="grow'+(done?" done":"")+'">'+ico(g)+'<span class="gname">'+esc(g.name)+'</span><span class="gcount num"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'</span><div class="bar">'+segs(g,t)+'</div></article>';
 }
 function goalMine(g,t,frac){
-  if(g.check) return goalCard(g,t,frac).replace(/<button class="box"[^>]*>(.*?)<\/button>/,function(m,c){return '<span class="box'+(c?' on':'')+'" aria-hidden="true">'+c+'</span>'});
+  if(g.check) return goalCard(g,t,frac,true);
   var mine=t.by[S.me], done=t.sum>=g.target-1e-9, pct=Math.round(mine/g.target*100), tpct=Math.round(Math.min(1,t.sum/g.target)*100);
   var h='<article class="goal'+(done?" done":"")+'"'+th(g)+'><div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+pct+' %</b></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar"><i style="width:'+Math.min(100,mine/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+S.me+')"></i></div></div>';
@@ -753,7 +765,10 @@ document.addEventListener("click",function(ev){
     if(!mine){toast("Hier gibt es von "+pname(S.me)+" noch keinen Eintrag.");return}
     store.del(mine.id).then(function(){toast("−"+fmt(mine.n)+" "+GBY[d.undo].name+" zurückgenommen")}).catch(wfail);
   }
-  else if(d.check){ if(S.me===null){toast("Wähl zuerst oben, für wen du einträgst.");return} store.add({g:d.check,p:S.me,n:1,t:Date.now()},"check-"+d.check).catch(wfail); }
+  else if(d.check){ if(S.me===null){toast("Tipp unter der Aufgabe an, wer sie gemacht hat.");return} store.add({g:d.check,p:S.me,n:1,t:Date.now()},"check-"+d.check+"-p"+S.me).catch(wfail); }
+  else if(d.who){ var wp=Number(d.p), mine=S.entries.filter(function(e){return e.g===d.who&&e.p===wp});
+    if(mine.length) mine.forEach(function(e){store.del(e.id).catch(wfail)});
+    else store.add({g:d.who,p:wp,n:1,t:Date.now()},"check-"+d.who+"-p"+wp).catch(wfail); }
   else if(d.uncheck){ S.entries.filter(function(e){return e.g===d.uncheck}).forEach(function(e){store.del(e.id).catch(wfail)}); }
   else if(d.del){ store.del(d.del).then(function(){toast("Eintrag gelöscht")}).catch(wfail); }
   else if(b.id==="stopBtn"){
