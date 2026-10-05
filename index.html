@@ -107,13 +107,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .seg button{flex:1;border:0;background:none;padding:9px 6px;font-weight:600;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 .grid.rows{overflow:hidden;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-.grow{display:grid;grid-template-columns:1fr auto;gap:5px 10px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:baseline;min-width:0}
+.grow{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:baseline;min-width:0}
 .grow:last-child{border-bottom:0}
 .grow .gname{font-weight:600;min-width:0}
 .grow .gcount{color:var(--muted);white-space:nowrap;font-size:1.15rem}
 .grow .gcount b{color:var(--fg);font-weight:700}
 .grow.done .gcount,.grow.done .gcount b{color:var(--good)}
-.grow .bar{grid-column:1/-1;height:8px}
+.grow .bar{grid-column:2/-1;height:8px}
+.grow .ico{grid-row:1/span 2;align-self:center;width:46px;height:46px;margin-right:4px}
+.grow.chk{align-items:center}
 
 /* task icons */
 .ico{flex:0 0 auto;width:52px;height:52px;overflow:hidden;border-radius:10px;display:grid;place-items:center;color:var(--ic);background:color-mix(in srgb,var(--ic) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--ic) 45%,var(--line))}
@@ -482,9 +484,9 @@ function segs(g,t){
 }
 function goalRow(g,t){
   if(g.check){ var e=t.last, d=t.sum>0;
-    return '<article class="grow chk'+(d?" done":"")+'"><span class="gname">'+esc(g.name)+'</span><span class="gcount">'+(d&&e?esc(pname(e.p))+' ':'')+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
+    return '<article class="grow chk'+(d?" done":"")+'">'+ico(g)+'<span class="gname">'+esc(g.name)+'</span><span class="gcount">'+(d&&e?esc(pname(e.p))+' ':'')+'<span class="box sm'+(d?' on':'')+'" aria-hidden="true">'+(d?'✓':'')+'</span>'+'</span></article>'; }
   var done=t.sum>=g.target-1e-9;
-  return '<article class="grow'+(done?" done":"")+'"><span class="gname">'+esc(g.name)+'</span><span class="gcount num"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'</span><div class="bar">'+segs(g,t)+'</div></article>';
+  return '<article class="grow'+(done?" done":"")+'">'+ico(g)+'<span class="gname">'+esc(g.name)+'</span><span class="gcount num"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'</span><div class="bar">'+segs(g,t)+'</div></article>';
 }
 function goalMine(g,t,frac){
   if(g.check) return goalCard(g,t,frac).replace(/<button class="box"[^>]*>(.*?)<\/button>/,function(m,c){return '<span class="box'+(c?' on':'')+'" aria-hidden="true">'+c+'</span>'});
