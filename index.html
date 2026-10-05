@@ -125,6 +125,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .pp[aria-pressed="true"]::before,.pp.on::before{background:var(--bg)}
 .pdot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--pc);margin-right:5px;vertical-align:middle}
 
+/* picker window */
+.modal{position:fixed;inset:0;z-index:25;background:rgba(4,8,14,.62);display:grid;place-items:center;padding:16px}
+.modal-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;width:min(380px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.pick-list{display:flex;flex-direction:column;gap:8px}
+.pick-list button{display:flex;align-items:center;gap:10px;min-height:50px;padding:0 14px;border-radius:10px;border:2px solid var(--line);background:var(--sunk);font-size:1.05rem;font-weight:600;text-align:left}
+.pick-list button span{flex:1;min-width:0}
+.pick-list button b{width:22px;text-align:center;color:var(--pc);font-size:1.2rem}
+.pick-list button[aria-checked="true"]{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 22%,var(--surface))}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+
 /* task icons */
 .ico{flex:0 0 auto;width:52px;height:52px;overflow:hidden;border-radius:10px;display:grid;place-items:center;color:var(--ic);background:color-mix(in srgb,var(--ic) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--ic) 45%,var(--line))}
 .ico svg{width:31px;height:31px;display:block}
@@ -319,6 +330,19 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
     </div>
   </section>
 </div>
+<div class="modal" id="pick" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <div>
+      <h3 id="pickTitle"></h3>
+      <div class="rule">Wer hat es gemacht? Du kannst mehrere auswählen.</div>
+    </div>
+    <div class="pick-list" id="pickList"></div>
+    <div class="modal-actions">
+      <button class="btn" id="pickCancel">Abbrechen</button>
+      <button class="btn primary" id="pickOk">Speichern</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -503,11 +527,9 @@ function goalCard(g,t,frac,ro){
   if(g.check){
     var e=t.last; done=t.sum>0;
     var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"", who="";
-    for(var w=0;w<NP();w++){ var on=t.by[w]>0;
-      who+=ro?(on?'<span class="pp on" style="--pc:var(--p'+w+')">'+esc(pname(w))+'</span>':'')
-             :'<button class="pp" style="--pc:var(--p'+w+')" data-who="'+g.id+'" data-p="'+w+'" aria-pressed="'+on+'"'+(canAct()?"":" disabled")+'>'+esc(pname(w))+'</button>'; }
+    for(var w=0;w<NP();w++) if(t.by[w]>0) who+='<span class="pp on" style="--pc:var(--p'+w+')">'+esc(pname(w))+'</span>';
     h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'>'+(ro?'<span class="box'+(done?' on':'')+'" aria-hidden="true">'+(done?'✓':'')+'</span>'
-      :'<button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+' abhaken" '+(done?'data-uncheck':'data-check')+'="'+g.id+'"'+dis+'>'+(done?'✓':'')+'</button>');
+      :'<button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+': auswählen, wer es gemacht hat" data-pick="'+g.id+'"'+dis+'>'+(done?'✓':'')+'</button>');
     h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(who?'<div class="pwho">'+who+'</div>':'')+(done&&e?'<div class="rule">Abgehakt um '+tm+' Uhr</div>':'')+'</div>';
     return h+ico(g)+'</article>';
   }
@@ -578,6 +600,21 @@ function render(){
     prevDone=cur; prevAll=allNow;
   }
 }
+var pickG=null, pickSel=[];
+function renderPick(){
+  var h="";
+  for(var i=0;i<NP();i++) h+='<button style="--pc:var(--p'+i+')" data-pp="'+i+'" role="checkbox" aria-checked="'+!!pickSel[i]+'"><i class="pdot"></i><span>'+esc(pname(i))+'</span><b>'+(pickSel[i]?'✓':'')+'</b></button>';
+  $("pickList").innerHTML=h;
+}
+function openPick(gid){
+  var g=GBY[gid]; if(!g||!canAct()) return;
+  pickG=gid; pickSel=[];
+  for(var i=0;i<NP();i++) pickSel[i]=S.entries.some(function(e){return e.g===gid&&e.p===i});
+  if(pickSel.indexOf(true)<0&&S.me!==null) pickSel[S.me]=true;
+  $("pickTitle").textContent=g.name; renderPick(); $("pick").hidden=false;
+  var f=$("pickList").querySelector("button"); if(f) f.focus();
+}
+function closePick(){ $("pick").hidden=true; pickG=null; }
 var prevDone=null, prevAll=null, actx=null, wake=null, finStop=null;
 function finale(){
   if(finStop) finStop();
@@ -645,7 +682,8 @@ function celebrate(gs){ toast(gs.map(function(g){return g.name}).join(", ")+" ge
 document.addEventListener("pointerdown",function(){
   try{ if(!actx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); } if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
 },{passive:true});
-document.addEventListener("keydown",function(e){ if(e.key==="Escape") tvOff(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ if(!$("pick").hidden) closePick(); else tvOff(); } });
+document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); });
 function renderSettings(){
   if($("settings").contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return;
   if(nameCount!==NP()){ nameCount=NP(); var nh="";
@@ -764,6 +802,15 @@ document.addEventListener("click",function(ev){
     var mine=S.entries.filter(function(e){return e.g===d.undo&&e.p===S.me}).sort(function(a,b){return b.t-a.t})[0];
     if(!mine){toast("Hier gibt es von "+pname(S.me)+" noch keinen Eintrag.");return}
     store.del(mine.id).then(function(){toast("−"+fmt(mine.n)+" "+GBY[d.undo].name+" zurückgenommen")}).catch(wfail);
+  }
+  else if(d.pick){ openPick(d.pick); }
+  else if(d.pp!==undefined){ pickSel[Number(d.pp)]=!pickSel[Number(d.pp)]; renderPick(); }
+  else if(b.id==="pickCancel"){ closePick(); }
+  else if(b.id==="pickOk"){
+    var pg=pickG; closePick();
+    for(var q=0;q<NP();q++){ (function(q){ var had=S.entries.filter(function(e){return e.g===pg&&e.p===q});
+      if(pickSel[q]&&!had.length) store.add({g:pg,p:q,n:1,t:Date.now()},"check-"+pg+"-p"+q).catch(wfail);
+      else if(!pickSel[q]&&had.length) had.forEach(function(e){store.del(e.id).catch(wfail)}); })(q); }
   }
   else if(d.check){ if(S.me===null){toast("Tipp unter der Aufgabe an, wer sie gemacht hat.");return} store.add({g:d.check,p:S.me,n:1,t:Date.now()},"check-"+d.check+"-p"+S.me).catch(wfail); }
   else if(d.who){ var wp=Number(d.p), mine=S.entries.filter(function(e){return e.g===d.who&&e.p===wp});
