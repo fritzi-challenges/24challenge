@@ -238,7 +238,9 @@ body.tv .totalbar{height:clamp(40px,4vw,56px)}
 body.tv .totalbar span{font-size:clamp(1.2rem,2.2vw,2rem)}
 body.tv #goals{grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));align-items:stretch}
 body.tv h2{font-size:1.3rem}
-body.tv .wrap{gap:14px}
+body.tv .wrap{gap:24px}
+body.tv .view{padding-top:0}
+body.tv .who{margin-top:16px}
 body.tv #goals{gap:18px}
 body.tv .grow{font-size:clamp(1rem,1.45vw,1.35rem);padding:5px 16px}
 body.tv .grow.chk .gcount{font-size:clamp(.9rem,1.2vw,1.15rem)}
@@ -619,7 +621,7 @@ function goalCard(g,t,frac,ro){
   h='<article class="goal tap'+(done?" done":"")+(S.open===g.id?" open":"")+'" data-card="'+g.id+'" tabindex="0" aria-expanded="'+(S.open===g.id)+'"'+th(g)+'><div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar">';
   for(var i=0;i<NP();i++){ if(t.by[i]>0) h+='<i style="width:'+Math.min(100,t.by[i]/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+i+')" title="'+esc(pname(i))+': '+fmt(t.by[i])+'"></i>'; }
-  h+='</div>'+(S.cfg.startAt&&!done?'<span class="soll" style="left:'+(frac*100)+'%" title="Soll laut Uhr"></span>':'')+'</div>';
+  h+='</div>'+'</div>';
   h+=(done||st?'<div class="meta"><span>'+(done?"Ziel erreicht":"")+'</span>'+st+'</div>':'')+'<div class="btns"'+(S.open===g.id?'':' hidden')+'>';
   g.steps.forEach(function(x){h+='<button class="add" data-add="'+g.id+'" data-n="'+x+'"'+dis+'>+'+fmt(x)+'</button>'});
   h+='<button class="undo" data-undo="'+g.id+'" title="Meinen letzten Eintrag hier zurücknehmen" aria-label="Letzten Eintrag bei '+esc(g.name)+' zurücknehmen"'+dis+'>↶</button></div></article>';
