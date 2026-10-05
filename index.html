@@ -184,6 +184,31 @@ body.fin-shake .wrap{animation:finshake .12s linear 7}
 @keyframes finflash{0%{background-color:#fff;filter:brightness(3)}100%{filter:brightness(1)}}
 @keyframes finshake{0%,100%{transform:translate(0,0)}25%{transform:translate(-7px,4px)}75%{transform:translate(7px,-4px)}}
 
+/* overview */
+.ovw{display:flex;flex-direction:column;gap:22px}
+.ov-list{display:flex;flex-direction:column;gap:12px}
+.er-who{display:flex;flex-wrap:wrap;gap:6px 14px}
+.ovw{max-width:980px;width:100%;margin-inline:auto}
+.ov{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ov.done{border-color:var(--good);background:color-mix(in srgb,var(--good) 9%,var(--surface))}
+.ov-head{display:flex;align-items:center;gap:12px}
+.ov-title{flex:1;min-width:0}
+.ov-title h3{overflow-wrap:anywhere}
+.ov-big{font-family:var(--display);font-size:1.25rem;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ov-big b{font-size:2rem;color:var(--fg)}
+.ov-big small{display:block;font-size:.85rem;color:var(--muted)}
+.ov.done .ov-big,.ov.done .ov-big b{color:var(--good)}
+.ov-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+.ov-facts span{display:flex;flex-direction:column;background:var(--sunk);border-radius:8px;padding:7px 10px;min-width:0}
+.ov-facts i{font-style:normal;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ov-facts b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.ov-facts b.pos{color:var(--good)} .ov-facts b.neg{color:var(--warn)}
+.ov .scroll{border-radius:8px}
+.ov-t th,.ov-t td{padding:6px 10px}
+.ov-t .ew{gap:8px}
+.ov .ew{display:inline-flex;align-items:center;gap:6px}
+.ov .ew .pp{min-width:24px;height:24px;font-size:.72rem}
+
 /* end summary */
 .end-hero{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:clamp(18px,3vw,32px);display:flex;flex-direction:column;gap:12px;text-align:center}
 .end-hero.ok{border:2px solid var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
@@ -295,6 +320,9 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 .catchip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:2px 2px 2px 10px;font-weight:600}
 .addbox{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
 .btn{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:9px 14px;font-weight:600}
+.opt-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.opt-head .seg{flex:1 1 300px;max-width:520px}
+.opt-body,.op{display:flex;flex-direction:column;gap:16px}
 .savebar{display:flex;justify-content:flex-end;position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
 .savebar .btn{pointer-events:auto;background:var(--accent);color:var(--on-accent);border-color:var(--accent);padding:12px 28px;font-size:1.05rem;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .btn.danger{color:var(--warn);border-color:var(--warn)}
@@ -324,7 +352,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
     <div class="who" id="who"></div>
     <nav class="tabs" id="tabs" role="tablist">
       <button role="tab" data-tab="ziele">Aufgaben</button>
-      <button role="tab" data-tab="tabelle">Tabelle</button>
+      <button role="tab" data-tab="tabelle">Übersicht</button>
       <button role="tab" data-tab="verlauf">Verlauf</button>
       <button role="tab" data-tab="abschluss" id="tabEnd" hidden>Abschluss</button>
     </nav>
@@ -339,8 +367,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
   </div>
 
   <section class="view" id="view-tabelle" hidden>
-    <h2>Wer hat was geschafft</h2>
-    <div class="scroll"><table id="table"></table></div>
+    <div id="overview" class="ovw"></div>
   </section>
 
   <section class="view" id="view-verlauf" hidden>
@@ -351,53 +378,75 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
   <section class="view" id="view-abschluss" hidden></section>
 
   <section class="view" id="view-optionen" hidden>
-    <div><button class="btn" id="optBack">← Zurück zu den Aufgaben</button></div>
-    <h2>Namen, Ziele und Startzeit</h2>
-    <div class="form" id="settings">
-      <div class="names" id="nameInputs"></div>
-      <div class="row">
-        <button class="btn" id="addPlayerBtn">Spieler hinzufügen</button>
-        <button class="btn" id="rmPlayerBtn">Letzten Spieler entfernen</button>
+    <div class="opt-head">
+      <button class="btn" id="optBack">← Zurück</button>
+      <div class="seg" id="optSeg" role="group" aria-label="Bereich der Einstellungen">
+        <button data-op="spieler">Spieler</button>
+        <button data-op="aufgaben">Aufgaben</button>
+        <button data-op="challenge">Challenge</button>
       </div>
-      <div>
-        <h3>Aufgaben bearbeiten</h3>
-        <div class="rule" id="goalHint">Name, Beschreibung und Menge jeder Aufgabe lassen sich ändern, solange die Challenge nicht gestartet ist. Danach auf „Speichern“ tippen.</div>
-      </div>
-      <div class="names" id="goalInputs"></div>
-      <div class="addbox">
-        <h3>Neue Aufgabe</h3>
-        <div class="row">
-          <label>Name<input id="newName" maxlength="28" autocomplete="off" placeholder="z. B. Kniebeugen"></label>
-          <label>Kategorie<select id="newCat"></select></label>
-          <label>Zielmenge (leer lassen = zum Abhaken)<input id="newTarget" type="number" min="1" inputmode="decimal" placeholder="z. B. 400"></label>
-          <label>Beschreibung<input id="newRule" maxlength="80" autocomplete="off" placeholder="optional"></label>
-          <button class="btn" id="addBtn">Hinzufügen</button>
+    </div>
+    <div id="settings" class="opt-body">
+      <div class="op" data-panel="spieler">
+        <div class="form">
+          <div><h3>Spieler</h3><div class="rule">Namen ändern und danach auf „Speichern“ tippen.</div></div>
+          <div class="names" id="nameInputs"></div>
+          <div class="row">
+            <button class="btn" id="addPlayerBtn">Spieler hinzufügen</button>
+            <button class="btn" id="rmPlayerBtn">Letzten Spieler entfernen</button>
+          </div>
         </div>
-        <button class="btn" id="restoreBtn" hidden>Entfernte Standard-Aufgaben zurückholen</button>
       </div>
-      <div class="addbox">
-        <h3>Neue Kategorie</h3>
-        <div class="row">
-          <label>Name<input id="newCatName" maxlength="28" autocomplete="off" placeholder="z. B. Geschick"></label>
-          <button class="btn" id="addCatBtn">Kategorie hinzufügen</button>
+      <div class="op" data-panel="aufgaben" hidden>
+        <div class="form">
+          <div><h3>Aufgaben bearbeiten</h3><div class="rule" id="goalHint"></div></div>
+          <div class="names" id="goalInputs"></div>
+          <button class="btn" id="restoreBtn" hidden>Entfernte Standard-Aufgaben zurückholen</button>
         </div>
-        <div id="catList"></div>
+        <div class="form">
+          <h3>Neue Aufgabe</h3>
+          <div class="row">
+            <label>Name<input id="newName" maxlength="28" autocomplete="off" placeholder="z. B. Kniebeugen"></label>
+            <label>Kategorie<select id="newCat"></select></label>
+            <label>Zielmenge (leer lassen = zum Abhaken)<input id="newTarget" type="number" min="1" inputmode="decimal" placeholder="z. B. 400"></label>
+            <label>Beschreibung<input id="newRule" maxlength="80" autocomplete="off" placeholder="optional"></label>
+            <button class="btn" id="addBtn">Hinzufügen</button>
+          </div>
+        </div>
+        <div class="form">
+          <h3>Neue Kategorie</h3>
+          <div class="row">
+            <label>Name<input id="newCatName" maxlength="28" autocomplete="off" placeholder="z. B. Geschick"></label>
+            <button class="btn" id="addCatBtn">Kategorie hinzufügen</button>
+          </div>
+          <div id="catList"></div>
+        </div>
       </div>
-      <div class="row">
-        <label>Startzeit (falls ihr schon losgelegt habt)<input id="startAt" type="datetime-local"></label>
-      </div>
-      <div class="row" id="stopRow" hidden>
-        <button class="btn danger" id="stopBtn">Challenge beenden</button>
-        <span class="rule" id="stopHint">Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten.</span>
-      </div>
-      <div class="row">
-        <button class="btn" id="endShow">Abschluss-Übersicht ansehen</button>
-        <button class="btn" id="finTest">Abschluss-Effekt testen</button>
-        <span class="rule">Beides ist nur zum Anschauen und ändert nichts am Stand.</span>
-      </div>
-      <div class="row">
-        <button class="btn danger" id="resetBtn">Alles zurücksetzen</button>
-        <span class="rule" id="resetHint">Löscht alle Einträge und die Startzeit.</span>
+      <div class="op" data-panel="challenge" hidden>
+        <div class="form">
+          <h3>Zeit</h3>
+          <div class="row">
+            <label>Startzeit (falls ihr schon losgelegt habt)<input id="startAt" type="datetime-local"></label>
+          </div>
+          <div class="row" id="stopRow" hidden>
+            <button class="btn danger" id="stopBtn">Challenge beenden</button>
+            <span class="rule" id="stopHint">Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten.</span>
+          </div>
+        </div>
+        <div class="form">
+          <div><h3>Vorschau</h3><div class="rule">Nur zum Anschauen, ändert nichts am Stand.</div></div>
+          <div class="row">
+            <button class="btn" id="endShow">Abschluss-Übersicht ansehen</button>
+            <button class="btn" id="finTest">Abschluss-Effekt testen</button>
+          </div>
+        </div>
+        <div class="form">
+          <h3>Zurücksetzen</h3>
+          <div class="row">
+            <button class="btn danger" id="resetBtn">Alles zurücksetzen</button>
+            <span class="rule" id="resetHint">Löscht alle Einträge und die Startzeit.</span>
+          </div>
+        </div>
       </div>
       <div class="savebar"><button class="btn" id="saveBtn">Speichern</button></div>
     </div>
@@ -690,12 +739,7 @@ function render(){
   var pct=Math.round(acc/GOALS.length*100);
   $("totalFill").style.width=pct+"%"; $("totalText").textContent=pct+" % · "+done+" von "+GOALS.length+" Aufgaben";
   // table
-  var cg=GOALS.filter(function(g){return !g.check});
-  var th='<thead><tr><th>Wer</th>'+cg.map(function(g){return '<th>'+esc(g.name)+'</th>'}).join("")+'</tr></thead><tbody>';
-  for(var i=0;i<NP();i++){
-    th+='<tr><td><span class="dot" style="--pc:var(--p'+i+')"></span>'+esc(pname(i))+'</td>'+cg.map(function(g){return '<td>'+fmt(T[g.id].by[i])+'</td>'}).join("")+'</tr>';
-  }
-  $("table").innerHTML=th+'</tbody>';
+  if(S.tab==="tabelle"&&!S.tv) renderOverview(T,frac);
   // log
   var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,40), lh="";
   es.forEach(function(e){var g=GBY[e.g]; if(!g) return;
@@ -718,6 +762,28 @@ function render(){
   if(S.tab==="abschluss"&&!S.tv) renderEnd(T,done,pct);
 }
 var finSeen=false, wasUp=false;
+function renderOverview(T,frac){
+  var N=NP(), started=!!S.cfg.startAt, h="";
+  function pc(a,b){ return b>0?Math.round(a/b*100):0; }
+  CATS.forEach(function(c){ if(!c.goals.length) return;
+    h+='<section class="cat"><h2>'+esc(c.name)+'</h2><div class="ov-list">';
+    c.goals.forEach(function(g){ var t=T[g.id], k;
+      if(g.check){ var d=t.sum>0, who="";
+        for(k=0;k<N;k++) if(t.by[k]>0) who+='<span class="ew"><span class="pp on" style="--pc:var(--p'+k+')">'+esc(initials(k))+'</span>'+esc(pname(k))+'</span>';
+        h+='<article class="ov'+(d?' done':'')+'"><div class="ov-head">'+ico(g)+'<div class="ov-title"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'</div><div class="ov-big">'+(d?'✓ geschafft':'offen')+'</div></div>';
+        h+='<div class="ov-facts"><span><i>Art</i><b>Zum Abhaken</b></span><span><i>Gemacht von</i><b>'+(d?t.by.filter(function(v){return v>0}).length+' von '+N:'niemandem')+'</b></span>'+(d&&t.last?'<span><i>Abgehakt um</i><b>'+new Date(t.last.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+' Uhr</b></span>':'')+'</div>';
+        h+=(who?'<div class="er-who">'+who+'</div>':'')+'</article>'; return; }
+      var done=t.sum>=g.target-1e-9, soll=g.target*frac, share=g.target/N, rest=Math.max(0,g.target-t.sum), diff=t.sum-soll;
+      h+='<article class="ov'+(done?' done':'')+'"><div class="ov-head">'+ico(g)+'<div class="ov-title"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'</div><div class="ov-big"><b>'+fmt(t.sum)+'</b> / '+fmt(g.target)+'<small>'+pc(t.sum,g.target)+' %</small></div></div>';
+      h+='<div class="bar">'+segs(g,t)+'</div>';
+      h+='<div class="ov-facts"><span><i>Ziel</i><b>'+fmt(g.target)+'</b></span><span><i>Geschafft</i><b>'+fmt(t.sum)+'</b></span><span><i>Offen</i><b>'+fmt(rest)+'</b></span><span><i>Soll bis jetzt</i><b>'+(started?fmt(soll):'–')+'</b></span><span><i>Vorsprung</i><b class="'+(started?(diff>=0?'pos':'neg'):'')+'">'+(started?(diff>=0?'+':'−')+fmt(Math.abs(diff)):'–')+'</b></span><span><i>Pro Kopf</i><b>'+fmt(share)+'</b></span></div>';
+      h+='<div class="scroll"><table class="ov-t"><thead><tr><th>Spieler</th><th>Gemacht</th><th>Anteil</th><th>Erfüllt</th><th>Soll bis jetzt</th><th>Noch offen</th></tr></thead><tbody>';
+      for(k=0;k<N;k++){ var v=t.by[k], ps=share*frac;
+        h+='<tr><td><span class="ew"><span class="pp on" style="--pc:var(--p'+k+')">'+esc(initials(k))+'</span>'+esc(pname(k))+'</span></td><td><b>'+fmt(v)+'</b></td><td>'+fmt(share)+'</td><td>'+pc(v,share)+' %</td><td>'+(started?fmt(ps):'–')+'</td><td>'+fmt(Math.max(0,share-v))+'</td></tr>'; }
+      h+='</tbody></table></div></article>'; });
+    h+='</div></section>'; });
+  $("overview").innerHTML=h||'<div class="empty">Keine Aufgaben vorhanden.</div>';
+}
 function renderEnd(T,doneN,pct){
   var N=NP(), total=GOALS.length, allDone=total>0&&doneN===total, st=S.cfg.startAt, i;
   var known=S.entries.filter(function(e){return GBY[e.g]}), lastT=known.reduce(function(m,e){return Math.max(m,e.t)},0);
@@ -856,7 +922,13 @@ document.addEventListener("keydown",function(e){
   if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.matches&&e.target.matches("[data-card]")){ e.preventDefault(); var id=e.target.dataset.card; S.open=S.open===id?null:id; render(); var again=document.querySelector('[data-card="'+id+'"]'); if(again) again.focus(); return; }
   if(e.key==="Escape"){ if(!$("edit").hidden){ $("edit").hidden=true; editG=null; } else if(!$("prof").hidden) $("prof").hidden=true; else if(!$("pick").hidden) closePick(); else tvOff(); } });
 document.addEventListener("click",function(e){ if(e.target&&e.target.id==="pick") closePick(); if(e.target&&e.target.id==="prof") $("prof").hidden=true; if(e.target&&e.target.id==="edit"){ $("edit").hidden=true; editG=null; } });
+function renderOp(){
+  var op=S.op||"spieler";
+  Array.prototype.forEach.call(document.querySelectorAll("#settings .op"),function(x){x.hidden=x.dataset.panel!==op});
+  Array.prototype.forEach.call($("optSeg").children,function(x){x.setAttribute("aria-pressed",String(x.dataset.op===op))});
+}
 function renderSettings(){
+  renderOp();
   if($("settings").contains(document.activeElement)&&document.activeElement.tagName==="INPUT") return;
   if(nameCount!==NP()){ nameCount=NP(); var nh="";
     for(var j=0;j<NP();j++) nh+='<label>Spieler '+(j+1)+'<input id="name'+j+'" maxlength="16" autocomplete="off"></label>';
@@ -972,13 +1044,14 @@ document.addEventListener("click",function(ev){
   if(b.id==="profBtn"){ openProf(); return; }
   if(b.id==="profCancel"){ $("prof").hidden=true; return; }
   if(d.setme!==undefined){ flush(); S.me=Number(d.setme); ls("challenge24-me",String(S.me)); $("prof").hidden=true; renderWho(); render(); return; }
+  if(d.op){ S.op=d.op; renderOp(); window.scrollTo(0,0); return; }
   if(b.id==="optBack"){ S.tab="ziele"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="optBtn"){ S.tab=S.tab==="optionen"?"ziele":"optionen"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="endShow"){ S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="finClose"){ if(finStop) finStop(); return; }
   if(b.id==="finTest"){ finale(); return; }
   if(d.gv){ S.gv=d.gv; ls("challenge24-gv",d.gv); render(); return; }
-  if(d.tab){ S.tab=d.tab; ls("challenge24-tab",d.tab); renderTabs(); window.scrollTo(0,0); return; }
+  if(d.tab){ S.tab=d.tab; ls("challenge24-tab",d.tab); renderTabs(); render(); window.scrollTo(0,0); return; }
   if(!store) return;
   if(d.add){ add(d.add,Number(d.n)); }
   else if(d.undo){
@@ -1018,7 +1091,7 @@ document.addEventListener("click",function(ev){
     var STOP=[["Challenge beenden","Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten."],["Bist du sicher?","Nochmal tippen, wenn du die laufende Challenge wirklich beenden willst."],["Bist du ganz ganz sicher?","Letzte Chance. Noch einmal tippen und die Uhr ist weg."]];
     var setStop=function(i){ stopStage=i; b.textContent=STOP[i][0]; $("stopHint").textContent=STOP[i][1]; };
     clearTimeout(stopTimer);
-    if(stopStage<2){ setStop(stopStage+1); stopTimer=setTimeout(function(){setStop(0)},6000); return; }
+    if(stopStage<1){ setStop(stopStage+1); stopTimer=setTimeout(function(){setStop(0)},6000); return; }
     setStop(0);
     store.cfg({names:S.cfg.names,goals:S.cfg.goals||{},startAt:null}).then(function(){toast("Challenge beendet. Die Uhr steht wieder auf 24:00:00.")}).catch(wfail);
   }
