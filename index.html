@@ -79,11 +79,15 @@ body.tv #profBtn{display:none}
 .view{display:flex;flex-direction:column;gap:16px;padding-top:14px}
 
 /* goals */
-#goals{display:grid;gap:22px}
+#goals{display:grid;gap:34px 44px}
 @media (min-width:980px){#goals{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}}
 .cat>.grid{align-content:start}
 body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
-.goal{min-height:100px;justify-content:center}
+.goal{min-height:100px;justify-content:center;position:relative}
+.pinb{position:absolute;top:-11px;left:-9px;z-index:1;border:0;background:none;padding:4px;font-size:1rem;line-height:1;filter:grayscale(1);opacity:.28;cursor:pointer}
+.pinb:hover{opacity:.7}
+.pinb.on{filter:none;opacity:1}
+.goal.pin{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .goal .ico{width:42px;height:42px}
 .goal .ico svg{width:26px;height:26px}
 .goal.tap{cursor:pointer}
@@ -384,6 +388,7 @@ tbody tr:last-child td{border-bottom:0}
 .log{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .log li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
 .log li:last-child{border-bottom:0}
+.log li.undone{color:var(--muted)}
 .log time{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.86rem}
 .log .what{flex:1;min-width:0}
 .log button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:4px 10px;font-size:.84rem;color:var(--muted)}
@@ -442,7 +447,6 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
     <nav class="tabs" id="tabs" role="tablist">
       <button role="tab" data-tab="ziele">Aufgaben</button>
       <button role="tab" data-tab="tabelle">Übersicht</button>
-      <button role="tab" data-tab="dringend">Dringend</button>
       <button role="tab" data-tab="verlauf">Verlauf</button>
       <button role="tab" data-tab="abschluss" id="tabEnd" hidden>Scoreboard</button>
     </nav>
@@ -460,11 +464,6 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 
   <section class="view" id="view-tabelle" hidden>
     <div id="overview" class="ovw"></div>
-  </section>
-
-  <section class="view" id="view-dringend" hidden>
-    <p class="rule uhint">Tippt bis zu 3 Aufgaben an, die gerade am dringendsten sind. Sie stehen dann für alle groß am Fernseher.</p>
-    <div id="urgent"></div>
   </section>
 
   <section class="view" id="view-verlauf" hidden>
@@ -804,19 +803,20 @@ function initials(i){
   return again?a+n.charAt(n.length-1):two;
 }
 function goalCard(g,t,frac,ro){
-  var dis=canAct()?"":" disabled", done, h;
+  var dis=canAct()?"":" disabled", done, h, pinOn=urgentIds().indexOf(g.id)>=0;
+  function pin(d){ if(ro||d||!canAct()) return ""; return '<button class="pinb'+(pinOn?' on':'')+'" data-urg="'+g.id+'" aria-pressed="'+pinOn+'" title="'+(pinOn?'Markierung entfernen':'Als dringend markieren (am Fernseher hervorheben)')+'" aria-label="'+esc(g.name)+' als dringend markieren">📌</button>'; }
   if(g.check){
     var e=t.last; done=t.sum>0;
     var tm=e?new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"}):"", who="";
     for(var w=0;w<NP();w++) if(t.by[w]>0) who+='<span class="pp on" style="--pc:var(--p'+w+')" title="'+esc(pname(w))+'">'+esc(initials(w))+'</span>';
-    h='<article class="goal check'+(done?" done":"")+'"'+th(g)+'>'+(ro?'<span class="box'+(done?' on':'')+'" aria-hidden="true">'+(done?'✓':'')+'</span>'
+    h='<article class="goal check'+(done?" done":"")+(pinOn&&!done?" pin":"")+'"'+th(g)+'>'+pin(done)+(ro?'<span class="box'+(done?' on':'')+'" aria-hidden="true">'+(done?'✓':'')+'</span>'
       :'<button class="box" role="checkbox" aria-checked="'+done+'" aria-label="'+esc(g.name)+': auswählen, wer es gemacht hat" data-pick="'+g.id+'"'+dis+'>'+(done?'✓':'')+'</button>');
     h+='<div class="check-text"><h3>'+esc(g.name)+'</h3>'+(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+(who?'<div class="pwho">'+who+'</div>':'')+'</div>';
     return h+ico(g)+'</article>';
   }
   done=t.sum>=g.target-1e-9; var rest=Math.max(0,g.target-t.sum), prog=Math.min(1,t.sum/g.target);
   var st=done?'<span class="state ok">Fertig</span>':(S.cfg.startAt&&prog+0.03<frac?'<span class="state late">Hinten</span>':'');
-  h='<article class="goal tap'+(done?" done":"")+(S.open===g.id?" open":"")+'" data-card="'+g.id+'" tabindex="0" aria-expanded="'+(S.open===g.id)+'"'+th(g)+'><div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
+  h='<article class="goal tap'+(done?" done":"")+(pinOn&&!done?" pin":"")+(S.open===g.id?" open":"")+'" data-card="'+g.id+'" tabindex="0" aria-expanded="'+(S.open===g.id)+'"'+th(g)+'>'+pin(done)+'<div class="goal-head">'+ico(g)+'<h3>'+esc(g.name)+'</h3><div class="count"><b>'+fmt(t.sum)+'</b><span>/ '+fmt(g.target)+'</span></div></div>';
   h+=(g.rule?'<div class="rule">'+esc(g.rule)+'</div>':'')+'<div class="barwrap"><div class="bar">';
   for(var i=0;i<NP();i++){ if(t.by[i]>0) h+='<i style="width:'+Math.min(100,t.by[i]/Math.max(g.target,t.sum)*100)+'%;background:var(--p'+i+')" title="'+esc(pname(i))+': '+fmt(t.by[i])+'"></i>'; }
   h+='</div>'+'</div>';
@@ -859,7 +859,7 @@ function renderSide(T,acc,frac){
   if(u.length){ u.slice(0,5).forEach(function(id){ var g=GBY[id], t=T[id];
       h+='<div class="su">'+ico(g)+'<span class="su-n">'+esc(g.name)+'</span><b class="num">'+(g.check?'offen':'noch '+fmt(g.target-t.sum))+'</b></div>'; });
     if(u.length>5) h+='<div class="sp-e">+ '+(u.length-5)+' weitere</div>'; }
-  else h+='<div class="sp-e">Nichts markiert. Am Handy im Reiter „Dringend“ auswählen.</div>';
+  else h+='<div class="sp-e">Nichts markiert. Bei einer Aufgabe die Nadel antippen.</div>';
   h+='</section>';
   var score=[]; for(i=0;i<N;i++) score.push(0);
   GOALS.forEach(function(g){ var t=T[g.id];
@@ -914,11 +914,13 @@ function render(){
   $("totalFill").style.width=pct+"%"; $("totalText").textContent=pct+" %\u2003·\u2003"+done+" von "+GOALS.length+" Aufgaben";
   // table
   if(S.tab==="tabelle"&&!S.tv) renderOverview(T,frac);
-  if(S.tab==="dringend"&&!S.tv) renderUrgent(T);
   if(S.tv) renderSide(T,acc,frac);
   // log
-  var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,40), lh="";
-  es.forEach(function(e){var g=GBY[e.g]; if(!g) return;
+  var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,60), lh="";
+  es.forEach(function(e){var g=GBY[e.g];
+    if(!g&&e.g.charAt(0)==="!"){ var ug=GBY[e.g.slice(1)]; if(!ug) return;
+      lh+='<li class="undone"><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>↩ '+esc(pname(e.p))+': '+(ug.check?'<s>'+esc(ug.name)+' abgehakt</s> rückgängig gemacht':'<s>'+(e.n<0?'−'+fmt(-e.n):'+'+fmt(e.n))+' '+esc(ug.name)+'</s> rückgängig gemacht')+'</span></li>'; return; }
+    if(!g) return;
     lh+='<li><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>'+esc(pname(e.p))+': '+(g.check?esc(g.name)+' abgehakt':(e.n<0?'−'+fmt(-e.n):'+'+fmt(e.n))+' '+esc(g.name))+'</span>'+(canAct()?'<button data-del="'+esc(e.id)+'">Löschen</button>':'')+'</li>';});
   $("log").innerHTML=lh||'<li class="empty">Noch nichts eingetragen. Tipp eine Aufgabe an und dann auf Plus.</li>';
   renderClock();
@@ -1231,7 +1233,7 @@ function renderNotice(){
   else if(S.mode==="error") m="Keine Verbindung zur Datenbank. Prüf Internet, URL, Key und ob das SQL-Setup gelaufen ist. Die Seite versucht es alle 15 Sekunden erneut.";
   n.textContent=m; n.hidden=!m;
 }
-var TABS=["ziele","tabelle","dringend","verlauf","abschluss","optionen"];
+var TABS=["ziele","tabelle","verlauf","abschluss","optionen"];
 function effTab(){ if(S.tv) return (S.tvView==="end"||(S.tvView==null&&S.fin))?"abschluss":"ziele"; return S.tab; }
 function renderTabs(){
   var endOk=!!(S.fin||S.endPrev);
@@ -1289,6 +1291,7 @@ function sbStore(sb){
     cfg:function(c){ return sb.from("config").upsert({id:"main",names:c.names,goals:c.goals||{},start_at:c.startAt}).then(chk).then(loadC); }
   };
 }
+function delLog(e){ return store.del(e.id).then(function(){ if(GBY[e.g]) return store.add({g:"!"+e.g,p:e.p,n:e.n,t:Date.now()}); }); }
 function wfail(e){ toast("Speichern hat nicht geklappt. Prüf die Verbindung und versuch es nochmal."); }
 
 /* ---------- actions ---------- */
@@ -1331,7 +1334,7 @@ document.addEventListener("click",function(ev){
   if(b.id==="finTest"){ finale(); return; }
   if(d.gv){ S.gv=d.gv; ls("challenge24-gv",d.gv); render(); return; }
   if(d.urg!==undefined){ if(!canAct()) return; var go=JSON.parse(JSON.stringify(S.cfg.goals||{})), ul=Array.isArray(go._urgent)?go._urgent.filter(function(id){return GBY[id]}):[], ix=ul.indexOf(d.urg);
-    if(ix>=0) ul.splice(ix,1); else { var TT=totals(); ul=ul.filter(function(id){return !gdone(GBY[id],TT[id])}); if(ul.length>=3){ toast("Maximal 3 Aufgaben können dringend sein. Nimm zuerst eine raus."); return; } ul.push(d.urg); } go._urgent=ul; S.cfg.goals=go; render();
+    if(ix>=0) ul.splice(ix,1); else { var TT=totals(); ul=ul.filter(function(id){return !gdone(GBY[id],TT[id])}); if(ul.length>=3){ toast("Maximal 3 Aufgaben können markiert sein. Nimm zuerst eine Nadel raus."); return; } ul.push(d.urg); } go._urgent=ul; S.cfg.goals=go; render();
     store.cfg({names:S.cfg.names,goals:go,startAt:S.cfg.startAt}).catch(wfail); return; }
   if(d.tab){ S.tab=d.tab; ls("challenge24-tab",d.tab); renderTabs(); render(); window.scrollTo(0,0); return; }
   if(!store) return;
@@ -1364,14 +1367,14 @@ document.addEventListener("click",function(ev){
     var pg=pickG; closePick();
     for(var q=0;q<NP();q++){ (function(q){ var had=S.entries.filter(function(e){return e.g===pg&&e.p===q});
       if(pickSel[q]&&!had.length) store.add({g:pg,p:q,n:1,t:Date.now()},"check-"+pg+"-p"+q).catch(wfail);
-      else if(!pickSel[q]&&had.length) had.forEach(function(e){store.del(e.id).catch(wfail)}); })(q); }
+      else if(!pickSel[q]&&had.length) had.forEach(function(e){delLog(e).catch(wfail)}); })(q); }
   }
   else if(d.check){ if(S.me===null){toast("Tipp unter der Aufgabe an, wer sie gemacht hat.");return} store.add({g:d.check,p:S.me,n:1,t:Date.now()},"check-"+d.check+"-p"+S.me).catch(wfail); }
   else if(d.who){ var wp=Number(d.p), mine=S.entries.filter(function(e){return e.g===d.who&&e.p===wp});
-    if(mine.length) mine.forEach(function(e){store.del(e.id).catch(wfail)});
+    if(mine.length) mine.forEach(function(e){delLog(e).catch(wfail)});
     else store.add({g:d.who,p:wp,n:1,t:Date.now()},"check-"+d.who+"-p"+wp).catch(wfail); }
-  else if(d.uncheck){ S.entries.filter(function(e){return e.g===d.uncheck}).forEach(function(e){store.del(e.id).catch(wfail)}); }
-  else if(d.del){ store.del(d.del).then(function(){toast("Eintrag gelöscht")}).catch(wfail); }
+  else if(d.uncheck){ S.entries.filter(function(e){return e.g===d.uncheck}).forEach(function(e){delLog(e).catch(wfail)}); }
+  else if(d.del){ var de=S.entries.filter(function(e){return e.id===d.del})[0]; (de?delLog(de):store.del(d.del)).then(function(){toast("Eintrag gelöscht")}).catch(wfail); }
   else if(b.id==="stopBtn"){
     var STOP=[["Challenge beenden","Stoppt die Uhr und entsperrt die Aufgaben. Eure Einträge bleiben erhalten."],["Bist du sicher?","Nochmal tippen, wenn du die laufende Challenge wirklich beenden willst."],["Bist du ganz ganz sicher?","Letzte Chance. Noch einmal tippen und die Uhr ist weg."]];
     var setStop=function(i){ stopStage=i; b.textContent=STOP[i][0]; $("stopHint").textContent=STOP[i][1]; };
@@ -1447,7 +1450,7 @@ document.addEventListener("click",function(ev){
 var m=ls("challenge24-me"); if(m!==null&&m!==""&&Number(m)>=0&&Number(m)<8) S.me=Number(m);
 var gv0=ls("challenge24-gv"); if(["karten","ich"].indexOf(gv0)>=0) S.gv=gv0;
 S.mute=ls("challenge24-mute")==="1";
-var tb=ls("challenge24-tab"); if(["ziele","tabelle","dringend","verlauf"].indexOf(tb)>=0) S.tab=tb;
+var tb=ls("challenge24-tab"); if(["ziele","tabelle","verlauf"].indexOf(tb)>=0) S.tab=tb;
 renderAll();
 setInterval(renderClock,1000);
 setInterval(function(){ if(S.cfg.startAt&&!Object.keys(pending).length) render(); },60000);
