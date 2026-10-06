@@ -91,9 +91,9 @@ body.tv #profBtn{display:none}
 .cat>.grid{align-content:start}
 body.tv .cat>.grid{flex:1;grid-auto-rows:1fr}
 .goal{min-height:100px;justify-content:center;position:relative}
-.pinb{position:absolute;top:-11px;right:-9px;z-index:1;border:0;background:none;padding:4px;font-size:1rem;line-height:1;filter:grayscale(1);opacity:.28;cursor:pointer}
-.pinb:hover{opacity:.7}
-.pinb.on{filter:none;opacity:1}
+.pinb{position:absolute;top:-11px;right:-9px;z-index:1;border:0;background:none;padding:4px;font-size:1rem;line-height:1;filter:grayscale(1);cursor:pointer}
+.pinb:hover{filter:grayscale(1) brightness(1.5)}
+.pinb.on,.pinb.on:hover{filter:none}
 .goal.pin{border-color:color-mix(in srgb,var(--accent) 70%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .goal .ico{width:42px;height:42px}
 .goal .ico svg{width:26px;height:26px}
