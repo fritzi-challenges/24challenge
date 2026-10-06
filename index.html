@@ -937,6 +937,8 @@ function render(){
   // log
   var es=S.entries.slice().sort(function(a,b){return b.t-a.t}).slice(0,60), lh="";
   es.forEach(function(e){var g=GBY[e.g];
+    if(!g&&e.g.charAt(0)==="^"){ var pg=GBY[e.g.slice(1)]; if(!pg) return;
+      lh+='<li class="undone"><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>📌 '+esc(pname(e.p))+' hat '+esc(pg.name)+(e.n>0?' angepinnt':' abgepinnt')+'</span></li>'; return; }
     if(!g&&e.g.charAt(0)==="!"){ var ug=GBY[e.g.slice(1)]; if(!ug) return;
       lh+='<li class="undone"><time>'+new Date(e.t).toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"})+'</time><span class="what"><span class="dot" style="--pc:var(--p'+e.p+')"></span>↩ '+esc(pname(e.p))+': '+(ug.check?'<s>'+esc(ug.name)+' abgehakt</s> rückgängig gemacht':'<s>'+(e.n<0?'−'+fmt(-e.n):'+'+fmt(e.n))+' '+esc(ug.name)+'</s> rückgängig gemacht')+'</span></li>'; return; }
     if(!g) return;
@@ -1353,8 +1355,9 @@ document.addEventListener("click",function(ev){
   if(b.id==="finClose"){ if(finStop) finStop(); if(!S.fin) S.endPrev=true; S.tab="abschluss"; renderAll(); window.scrollTo(0,0); return; }
   if(b.id==="finTest"){ S.opt=false; renderAll(); finale(); return; }
   if(d.gv){ S.gv=d.gv; ls("challenge24-gv",d.gv); render(); return; }
-  if(d.urg!==undefined){ if(!canAct()) return; var go=JSON.parse(JSON.stringify(S.cfg.goals||{})), ul=Array.isArray(go._urgent)?go._urgent.filter(function(id){return GBY[id]}):[], ix=ul.indexOf(d.urg);
+  if(d.urg!==undefined){ if(!canAct()) return; if(S.me===null){ openProf(); return; } var go=JSON.parse(JSON.stringify(S.cfg.goals||{})), ul=Array.isArray(go._urgent)?go._urgent.filter(function(id){return GBY[id]}):[], ix=ul.indexOf(d.urg);
     if(ix>=0) ul.splice(ix,1); else { var TT=totals(); ul=ul.filter(function(id){return !gdone(GBY[id],TT[id])}); if(ul.length>=3){ toast("Maximal 3 Aufgaben können markiert sein. Nimm zuerst eine Nadel raus."); return; } ul.push(d.urg); } go._urgent=ul; S.cfg.goals=go; render();
+    store.add({g:"^"+d.urg,p:S.me,n:ix>=0?-1:1,t:Date.now()}).catch(function(){});
     store.cfg({names:S.cfg.names,goals:go,startAt:S.cfg.startAt}).catch(wfail); return; }
   if(d.tab){ S.tab=d.tab; ls("challenge24-tab",d.tab); renderTabs(); render(); window.scrollTo(0,0); return; }
   if(!store) return;
