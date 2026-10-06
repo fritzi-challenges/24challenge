@@ -1271,7 +1271,7 @@ function confetti(count){
       x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.globalAlpha=Math.max(0,1-el/3000); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66); x.restore(); });
     if(el<3000&&c.isConnected) requestAnimationFrame(step); else c.remove(); })(performance.now());
 }
-function celebrate(gs){ toast(gs.map(function(g){return g.name}).join(", ")+" geschafft!"); ding(); confetti(); }
+function celebrate(gs){ toast(gs.map(function(g){return g.name}).join(", ")+" geschafft!"); if(!gs.every(function(g){return g.check})) ding(); confetti(); }
 document.addEventListener("input",function(e){ if(e.target&&e.target.id==="rstText") $("rstOk").disabled=!/^l(ö|oe)schen$/i.test(e.target.value.trim()); });
 document.addEventListener("pointerdown",function(){
   try{ if(!actx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); } if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
